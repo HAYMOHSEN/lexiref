@@ -1,0 +1,167 @@
+{
+  "name": "LexiRef",
+  "short_name": "LexiRef",
+  "description": "Modern reference manager and citation engine for Windows. Collect references by DOI or from BibTeX/RIS, format them in APA, IEEE, MLA, Chicago, Harvard or Vancouver, check sources for retractions, and cite in Microsoft Word — fully offline.",
+  "id": "/lexiref/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "orientation": "any",
+  "background_color": "#f3f4f8",
+  "theme_color": "#4f46e5",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": [
+    "productivity",
+    "education",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/library.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Your reference library with collections, tags and retraction flags"
+    },
+    {
+      "src": "screenshots/cite.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "One-click in-text citations and reference entries in six styles"
+    },
+    {
+      "src": "screenshots/bibliography.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Bibliography builder with Word, RTF, BibTeX, RIS and CSL-JSON export"
+    },
+    {
+      "src": "screenshots/integrity.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Integrity check flags retracted papers using Crossref and Retraction Watch data"
+    },
+    {
+      "src": "screenshots/editor.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Add references by DOI or by hand with a live preview"
+    },
+    {
+      "src": "screenshots/dark.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dark theme that follows Windows"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add by DOI",
+      "short_name": "Add DOI",
+      "description": "Look up a reference by DOI or title",
+      "url": "./index.html?action=lookup",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Import file",
+      "short_name": "Import",
+      "description": "Import BibTeX, RIS or JSON",
+      "url": "./index.html?action=import",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Bibliography & export",
+      "short_name": "Bibliography",
+      "description": "Build and export a bibliography",
+      "url": "./index.html?action=bibliography",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "./index.html?action=open",
+      "accept": {
+        "application/x-bibtex": [
+          ".bib"
+        ],
+        "application/x-research-info-systems": [
+          ".ris"
+        ],
+        "application/json": [
+          ".lexiref.json"
+        ]
+      }
+    }
+  ],
+  "prefer_related_applications": false
+}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LexiRef — Privacy Policy</title>
+<link rel="icon" type="image/png" href="icons/icon-32.png">
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; max-width: 760px; margin: 0 auto; padding: 40px 24px 60px; line-height: 1.65; color: #1b1f2a; background: #fff; }
+  @media (prefers-color-scheme: dark) { body { background: #0f1117; color: #e7e9f0; } a { color: #a3a1ff; } .box { background: #171a23; border-color: #272b3a; } }
+  h1 { font-size: 28px; margin: 0 0 4px; } h2 { font-size: 18px; margin-top: 28px; }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .brand img { width: 44px; height: 44px; border-radius: 10px; }
+  .muted { color: #737a8c; font-size: 14px; }
+  .box { background: #f3f4f8; border: 1px solid #e3e5ec; border-radius: 10px; padding: 14px 18px; }
+  a { color: #4f46e5; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; } td, th { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e3e5ec; vertical-align: top; }
+</style>
+</head>
+<body>
+  <div class="brand"><img src="icons/icon-192.png" alt="LexiRef icon"><div><h1>Privacy Policy</h1><div class="muted">LexiRef for Windows and the LexiRef Word add-in · Effective 5 October 2026</div></div></div>
+
+  <div class="box"><b>In short:</b> LexiRef is an offline app. Your reference library stays on your device. LexiRef has no accounts, no analytics, no advertising and no tracking. The only network requests it ever makes are the optional metadata look-ups you trigger yourself (Crossref and OpenAlex), and those send nothing but the identifier or search text you typed.</div>
+
+  <h2>1. What data LexiRef stores</h2>
+  <p>LexiRef stores the references, collections, tags, notes and settings you create. This data is saved locally on your device in the app's own storage (IndexedDB) and, if you choose to link a library file, in that file at the location you select. Nothing is uploaded to us or to any third party. We — the developer of LexiRef — have no access to your library.</p>
+
+  <h2>2. Optional online look-ups</h2>
+  <p>Two features need an internet connection, and both are started only by your explicit action:</p>
+  <table>
+    <tr><th>Feature</th><th>Service contacted</th><th>Data sent</th></tr>
+    <tr><td>Add by DOI / arXiv ID / title search, and “Refresh from DOI”</td><td><a href="https://www.crossref.org/" rel="noopener">Crossref REST API</a> (api.crossref.org); for DOIs that Crossref does not know (arXiv, Zenodo, datasets) the <a href="https://datacite.org/" rel="noopener">DataCite REST API</a> (api.datacite.org)</td><td>The DOI, identifier or title keywords you typed</td></tr>
+    <tr><td>Integrity (retraction) check</td><td>Crossref REST API and <a href="https://openalex.org/" rel="noopener">OpenAlex</a> (api.openalex.org), which includes Retraction Watch data</td><td>The DOI of each reference you asked to check</td></tr>
+  </table>
+  <p>These are public scholarly-metadata services. Their handling of requests is governed by their own policies. No cookies, account identifiers or device identifiers are sent with these requests. If you choose to enter a contact e-mail address in <i>Settings</i> (optional, for the services' “polite pool”), that address is added to these requests and to nothing else. If you never use these features, LexiRef never connects to the internet (apart from the Microsoft Store delivering updates).</p>
+
+  <h2>3. The Word add-in</h2>
+  <p>The LexiRef Word add-in runs inside Microsoft Word and reads the library file you open in it. It writes citations and a bibliography into your document only when you click the corresponding buttons. The add-in's files are delivered from our web host so that Word can load them; that host receives only the standard request information every web browser sends (such as your IP address) and does not receive your library or document content.</p>
+
+  <h2>4. Clipboard and files</h2>
+  <p>“Copy” actions place text on your clipboard at your request. Export actions create files (Word, RTF, HTML, text, BibTeX, RIS, CSL-JSON, LexiRef JSON) on your device. LexiRef never reads your clipboard or any file you did not open in it.</p>
+
+  <h2>5. Children</h2>
+  <p>LexiRef does not knowingly collect any personal data, from children or from anyone else.</p>
+
+  <h2>6. Deleting your data</h2>
+  <p>Use <i>Settings → Delete entire library</i> inside the app, or uninstall LexiRef from Windows; both remove the locally stored data. Library files and exports you saved yourself remain where you saved them until you delete them.</p>
+
+  <h2>7. Changes and contact</h2>
+  <p>If this policy changes, the new version will be published at this address together with a new effective date. Questions: <a href="mailto:haymohsen@gmail.com">haymohsen@gmail.com</a>.</p>
+
+  <p class="muted" style="margin-top:36px">© 2026 LexiRef</p>
+</body>
+</html>

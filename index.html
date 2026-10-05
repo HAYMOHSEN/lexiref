@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="LexiRef — a modern, offline reference manager and citation engine for Windows. APA, IEEE, MLA, Chicago, Harvard and Vancouver; BibTeX and RIS; retraction checks; one-click citations for Word.">
+<meta name="theme-color" content="#4f46e5">
+<meta name="color-scheme" content="light dark">
+<title>LexiRef</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+/* ---------- Design tokens ---------- */
+:root {
+  --bg: #f3f4f8; --surface: #ffffff; --surface-2: #f7f8fb; --surface-3: #eceef4;
+  --border: #e3e5ec; --border-strong: #cfd3de;
+  --text: #1b1f2a; --text-2: #4b5160; --muted: #737a8c;
+  --accent: #4f46e5; --accent-hover: #4338ca; --accent-soft: #eef0ff; --accent-text: #3730a3;
+  --danger: #dc2626; --danger-soft: #fee2e2; --warn: #b45309; --warn-soft: #fef3c7; --ok: #047857; --ok-soft: #d1fae5;
+  --radius: 10px; --radius-sm: 7px;
+  --shadow: 0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.08);
+  --shadow-lg: 0 20px 50px rgba(16,24,40,.22), 0 2px 8px rgba(16,24,40,.12);
+  --focus: 0 0 0 3px rgba(79,70,229,.25);
+  --sidebar-w: 248px; --detail-w: 400px; --topbar-h: 56px;
+  --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --mono: "Cascadia Code", Consolas, "SF Mono", monospace;
+}
+[data-theme="dark"] {
+  --bg: #0f1117; --surface: #171a23; --surface-2: #1c1f2a; --surface-3: #242837;
+  --border: #272b3a; --border-strong: #3a3f52;
+  --text: #e7e9f0; --text-2: #b7bccb; --muted: #8b92a7;
+  --accent: #6f6cf2; --accent-hover: #8886ff; --accent-soft: #262a4d; --accent-text: #c7c6ff;
+  --danger: #f87171; --danger-soft: #3f1d1d; --warn: #fbbf24; --warn-soft: #3d2f0d; --ok: #34d399; --ok-soft: #0e3b2c;
+  --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-lg: 0 24px 60px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.4);
+  --focus: 0 0 0 3px rgba(135,132,245,.35);
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; font-family: var(--font); font-size: 14px; color: var(--text); background: var(--bg); overflow: hidden; -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+::selection { background: var(--accent-soft); }
+*:focus-visible { outline: none; box-shadow: var(--focus); }
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.mono { font-family: var(--mono); font-size: 12.5px; }
+.ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+svg.ic { width: 16px; height: 16px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+svg.ic.lg { width: 20px; height: 20px; }
+
+/* ---------- Buttons ---------- */
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); font-weight: 500; line-height: 1.2; white-space: nowrap; transition: background .12s, border-color .12s, transform .05s; }
+.btn:hover { background: var(--surface-2); border-color: var(--muted); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.danger { color: var(--danger); border-color: var(--danger); }
+.btn.danger:hover { background: var(--danger-soft); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.ghost:hover { background: var(--surface-3); border-color: transparent; }
+.btn.sm { padding: 5px 9px; font-size: 13px; }
+.btn.icon { padding: 7px; }
+.btn[disabled] { opacity: .5; cursor: default; pointer-events: none; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.btn-row.end { justify-content: flex-end; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; font-size: 12px; background: var(--surface-3); color: var(--text-2); border: 1px solid transparent; cursor: pointer; }
+.chip:hover { border-color: var(--border-strong); }
+.chip.active { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent); }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; letter-spacing: .01em; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.badge.retracted { background: var(--danger-soft); color: var(--danger); }
+.badge.clean { background: var(--ok-soft); color: var(--ok); }
+.badge.unknown { background: var(--warn-soft); color: var(--warn); }
+.badge.type { background: var(--surface-3); color: var(--text-2); font-weight: 500; }
+.badge.fav { background: var(--warn-soft); color: var(--warn); }
+
+/* ---------- Forms ---------- */
+input[type=text], input[type=number], input[type=search], input[type=url], input[type=date], select, textarea {
+  width: 100%; padding: 7px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); transition: border-color .12s, box-shadow .12s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: var(--focus); outline: none; }
+textarea { resize: vertical; min-height: 70px; line-height: 1.45; }
+label.f { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 4px; }
+.field { margin-bottom: 12px; }
+.field .hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 14px; }
+.check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.check input { width: auto; margin: 0; accent-color: var(--accent); }
+.segmented { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); overflow: hidden; }
+.segmented button { border: 0; background: transparent; padding: 6px 11px; font-size: 13px; color: var(--text-2); }
+.segmented button + button { border-left: 1px solid var(--border-strong); }
+.segmented button.active { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+
+/* ---------- Layout ---------- */
+#app { display: flex; flex-direction: column; height: 100%; }
+.topbar { height: var(--topbar-h); display: flex; align-items: center; gap: 12px; padding: 0 14px; background: var(--surface); border-bottom: 1px solid var(--border); flex: 0 0 auto; }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 16px; letter-spacing: -.01em; padding-right: 6px; }
+.brand .logo { width: 30px; height: 30px; border-radius: 8px; }
+.search { flex: 1 1 auto; max-width: 560px; min-width: 150px; position: relative; }
+.search input { padding-left: 34px; background: var(--surface-2); border-color: var(--border); }
+.search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.search .kbd { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--muted); border: 1px solid var(--border-strong); border-radius: 4px; padding: 1px 5px; background: var(--surface); }
+.topbar .actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.topbar select { width: auto; padding: 6px 28px 6px 10px; }
+.main { flex: 1 1 auto; display: flex; min-height: 0; }
+.sidebar { width: var(--sidebar-w); flex: 0 0 auto; border-right: 1px solid var(--border); background: var(--surface); overflow-y: auto; padding: 10px 8px 20px; }
+.sidebar h4 { margin: 14px 10px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; align-items: center; justify-content: space-between; font-weight: 700; }
+.sidebar h4 button { border: 0; background: transparent; color: var(--muted); padding: 2px; border-radius: 4px; display: inline-flex; }
+.sidebar h4 button:hover { background: var(--surface-3); color: var(--text); }
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-2); user-select: none; }
+.nav-item:hover { background: var(--surface-2); color: var(--text); }
+.nav-item.active { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.nav-item .count { margin-left: auto; font-size: 11.5px; color: var(--muted); font-weight: 500; }
+.nav-item.active .count { color: var(--accent-text); }
+.nav-item .name { flex: 1 1 auto; }
+.nav-item.drop-target { outline: 2px dashed var(--accent); outline-offset: -2px; }
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 10px; }
+.list-pane { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: var(--bg); }
+.list-header { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
+.list-header h2 { margin: 0; font-size: 15px; font-weight: 700; }
+.list-header .count { color: var(--muted); font-weight: 500; font-size: 13px; }
+.list-header .tools { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.list-header select { width: auto; padding: 5px 26px 5px 9px; font-size: 13px; }
+.bulkbar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--accent-soft); color: var(--accent-text); border-bottom: 1px solid var(--border); font-size: 13px; }
+.bulkbar .btn { background: var(--surface); }
+.list { flex: 1 1 auto; overflow-y: auto; padding: 8px 12px 40px; }
+.row { display: grid; grid-template-columns: 28px 34px 1fr 64px 132px; gap: 10px; align-items: center; padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: default; margin-bottom: 2px; background: transparent; }
+.row:hover { background: var(--surface); border-color: var(--border); }
+.row.selected { background: var(--surface); border-color: var(--border-strong); box-shadow: var(--shadow); }
+.row.active { background: var(--accent-soft); border-color: var(--accent); }
+.row input[type=checkbox] { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); }
+.row .ticon { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: var(--surface-3); color: var(--text-2); }
+.row.active .ticon { background: var(--surface); }
+.row .t { font-weight: 600; line-height: 1.3; display: flex; gap: 6px; align-items: center; min-width: 0; }
+.row .t span.txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.row .yr { font-variant-numeric: tabular-nums; color: var(--text-2); text-align: right; }
+.row .meta { text-align: right; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.row .star { color: var(--warn); }
+.empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty h3 { color: var(--text); margin: 14px 0 6px; }
+.empty .btn-row { justify-content: center; margin-top: 16px; }
+.showmore { text-align: center; padding: 10px; }
+
+/* ---------- Detail pane ---------- */
+.detail { width: var(--detail-w); flex: 0 0 auto; border-left: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; min-height: 0; }
+.detail .tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 10px; }
+.detail .tabs button { border: 0; background: transparent; padding: 11px 12px; color: var(--muted); font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.detail .tabs button.active { color: var(--accent-text); border-bottom-color: var(--accent); }
+.detail .body { flex: 1 1 auto; overflow-y: auto; padding: 16px 18px 30px; }
+.detail .body h3 { margin: 0 0 8px; font-size: 16px; line-height: 1.35; }
+.kv { display: grid; grid-template-columns: 96px 1fr; gap: 6px 10px; font-size: 13px; margin: 12px 0; }
+.kv dt { color: var(--muted); min-width: 0; } .kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.detail .empty { padding: 40px 10px; }
+.cite-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; font-family: Georgia, "Times New Roman", serif; font-size: 14px; line-height: 1.55; margin: 6px 0 8px; word-break: break-word; }
+.cite-box.sm { font-size: 13px; }
+.detail .section { margin-bottom: 18px; }
+.detail .section > label.f, .detail .section h5 { margin: 0 0 6px; font-size: 12px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .05em; }
+.warnbox { background: var(--danger-soft); color: var(--danger); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 13px; margin-bottom: 12px; display: flex; gap: 8px; align-items: flex-start; }
+.okbox { background: var(--ok-soft); color: var(--ok); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12.5px; margin-bottom: 12px; }
+.infobox { background: var(--accent-soft); color: var(--accent-text); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 13px; margin-bottom: 12px; line-height: 1.45; }
+
+/* ---------- Status bar ---------- */
+.statusbar { height: 28px; display: flex; align-items: center; gap: 18px; padding: 0 14px; font-size: 12px; color: var(--muted); background: var(--surface); border-top: 1px solid var(--border); flex: 0 0 auto; }
+.statusbar .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); display: inline-block; margin-right: 6px; }
+.statusbar .dot.on { background: var(--ok); }
+.statusbar .right { margin-left: auto; display: flex; gap: 14px; }
+
+/* ---------- Modals ---------- */
+.overlay { position: fixed; inset: 0; background: rgba(10,12,20,.45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; backdrop-filter: blur(2px); }
+.modal { background: var(--surface); border-radius: 14px; box-shadow: var(--shadow-lg); width: min(680px, 100%); max-height: calc(100vh - 40px); display: flex; flex-direction: column; border: 1px solid var(--border); animation: pop .14s ease-out; }
+.modal.wide { width: min(900px, 100%); }
+.modal.narrow { width: min(460px, 100%); }
+@keyframes pop { from { transform: translateY(8px) scale(.985); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal header { display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; border-bottom: 1px solid var(--border); }
+.modal header h3 { margin: 0; font-size: 16px; flex: 1 1 auto; }
+.modal header .x { border: 0; background: transparent; color: var(--muted); padding: 4px; border-radius: 6px; display: inline-flex; }
+.modal header .x:hover { background: var(--surface-3); color: var(--text); }
+.modal .content { padding: 16px 20px; overflow-y: auto; flex: 1 1 auto; }
+.modal footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center; }
+.modal footer .spacer { flex: 1 1 auto; }
+.preview { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; font-family: Georgia, "Times New Roman", serif; font-size: 14px; line-height: 1.6; max-height: 320px; overflow-y: auto; }
+.preview p { margin: 0 0 8px; }
+.result { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; background: var(--surface); }
+.result .r-title { font-weight: 600; } .result .r-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.result .btn { margin-left: auto; }
+.progress { height: 6px; background: var(--surface-3); border-radius: 999px; overflow: hidden; margin: 8px 0; }
+.progress > div { height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.tbl th, table.tbl td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+table.tbl th { color: var(--muted); font-weight: 600; font-size: 12px; }
+.dz { border: 2px dashed var(--border-strong); border-radius: var(--radius); padding: 22px; text-align: center; color: var(--muted); background: var(--surface-2); }
+.dz.over { border-color: var(--accent); background: var(--accent-soft); }
+.menu { position: fixed; z-index: 60; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-lg); padding: 6px; min-width: 220px; animation: pop .12s ease-out; }
+.menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 6px; font-size: 13.5px; color: var(--text); }
+.menu button:hover { background: var(--surface-2); }
+.menu button.danger { color: var(--danger); }
+.menu hr { border: 0; border-top: 1px solid var(--border); margin: 5px 0; }
+.menu .mlabel { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 6px 10px 2px; font-weight: 700; }
+.menu button .sc { margin-left: auto; font-size: 11.5px; color: var(--muted); }
+#toasts { position: fixed; bottom: 42px; left: 50%; transform: translateX(-50%); z-index: 70; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+.toast { pointer-events: auto; background: #1f2333; color: #fff; padding: 10px 16px; border-radius: 10px; box-shadow: var(--shadow-lg); display: flex; gap: 14px; align-items: center; font-size: 13.5px; animation: pop .15s ease-out; max-width: 560px; }
+.toast.err { background: #7f1d1d; } .toast.ok { background: #065f46; }
+.toast button { border: 0; background: rgba(255,255,255,.14); color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 600; }
+.toast button:hover { background: rgba(255,255,255,.26); }
+.kbdlist { columns: 2; gap: 24px; font-size: 13px; }
+.kbdlist div { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--border); break-inside: avoid; }
+kbd { font-family: var(--mono); font-size: 11.5px; background: var(--surface-3); border: 1px solid var(--border-strong); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; }
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 6px 0 16px; }
+.stat { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+.stat b { display: block; font-size: 20px; } .stat span { font-size: 12px; color: var(--muted); }
+.welcome-opts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 8px; }
+.welcome-opts button { border: 1px solid var(--border-strong); background: var(--surface); border-radius: 12px; padding: 16px 14px; text-align: left; display: flex; flex-direction: column; gap: 8px; }
+.welcome-opts button:hover { border-color: var(--accent); background: var(--accent-soft); }
+.welcome-opts b { font-size: 14px; } .welcome-opts span { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.steps { counter-reset: s; padding-left: 0; list-style: none; }
+.steps li { counter-increment: s; display: flex; gap: 12px; margin-bottom: 10px; line-height: 1.5; }
+.steps li::before { content: counter(s); flex: 0 0 24px; height: 24px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-text); font-weight: 700; display: grid; place-items: center; font-size: 12px; }
+@media (max-width: 1180px) { :root { --detail-w: 340px; } }
+@media (max-width: 1100px) { .search .kbd { display: none; } .search input { padding-right: 10px; } }
+@media (max-width: 1000px) { .topbar #styleSelect, .topbar #btnCheck { display: none; } }
+@media (max-width: 980px) { .detail { position: fixed; right: 0; top: var(--topbar-h); bottom: 28px; box-shadow: var(--shadow-lg); z-index: 20; transform: translateX(100%); transition: transform .18s; } .detail.open { transform: none; } .row { grid-template-columns: 28px 34px 1fr 56px; } .row .meta { display: none; } }
+@media (max-width: 760px) { .sidebar { display: none; } .topbar #btnBib span { display: none; } .grid2, .grid3 { grid-template-columns: 1fr; } .welcome-opts { grid-template-columns: 1fr; } .stat-grid { grid-template-columns: 1fr 1fr; } }
+@media print { .topbar, .sidebar, .detail, .statusbar, .list-header { display: none !important; } .list { overflow: visible; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand" title="LexiRef — reference manager & citation engine">
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#lg)"/><g fill="#fff"><g transform="translate(24.25 27.5)"><circle r="7"/><path d="M6.86 1.4Q7 11.9-2.45 16.1Q2.1 10.5-1.4 6.86Z"/></g><g transform="translate(39.75 27.5)"><circle r="7"/><path d="M6.86 1.4Q7 11.9-2.45 16.1Q2.1 10.5-1.4 6.86Z"/></g></g></svg>
+      <span>LexiRef</span>
+    </div>
+    <div class="search">
+      <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="searchBox" type="search" placeholder="Search titles, authors, years, journals, DOIs, tags…" autocomplete="off" spellcheck="false">
+      <span class="kbd">Ctrl+F</span>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="btnAdd" title="Add a reference (Ctrl+N)"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add<svg class="ic" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="m6 9 6 6 6-6"/></svg></button>
+      <select id="styleSelect" title="Citation style"></select>
+      <button class="btn" id="btnBib" title="Build a bibliography from the selected or listed references"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Bibliography</button>
+      <button class="btn" id="btnCheck" title="Check references against Crossref and Retraction Watch (OpenAlex) for retractions"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></svg>Integrity</button>
+      <button class="btn icon" id="btnTheme" title="Toggle light / dark theme"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <button class="btn icon" id="btnMore" title="More"><svg class="ic" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+    </div>
+  </header>
+
+  <div class="main">
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <section class="list-pane">
+      <div class="list-header">
+        <h2 id="viewTitle">All references</h2><span class="count" id="viewCount"></span>
+        <div class="tools">
+          <select id="typeFilter"><option value="">All types</option></select>
+          <select id="sortSelect">
+            <option value="added-desc">Newest first</option>
+            <option value="added-asc">Oldest first</option>
+            <option value="author">Author A–Z</option>
+            <option value="year-desc">Year ↓</option>
+            <option value="year-asc">Year ↑</option>
+            <option value="title">Title A–Z</option>
+            <option value="modified-desc">Recently edited</option>
+          </select>
+          <button class="btn sm" id="btnSelectAll" title="Select all listed references">Select all</button>
+        </div>
+      </div>
+      <div class="bulkbar hidden" id="bulkbar">
+        <strong id="bulkCount"></strong>
+        <button class="btn sm" data-bulk="cite">Copy citation</button>
+        <button class="btn sm" data-bulk="refs">Copy references</button>
+        <button class="btn sm" data-bulk="collection">Add to collection</button>
+        <button class="btn sm" data-bulk="tag">Add tag</button>
+        <button class="btn sm" data-bulk="export">Export…</button>
+        <button class="btn sm danger" data-bulk="delete">Delete</button>
+        <button class="btn sm ghost" data-bulk="clear" style="margin-left:auto">Clear selection</button>
+      </div>
+      <div class="list" id="refList" tabindex="0"></div>
+    </section>
+
+    <aside class="detail" id="detailPane">
+      <div class="tabs">
+        <button data-tab="overview" class="active">Overview</button>
+        <button data-tab="cite">Cite</button>
+        <button data-tab="notes">Notes</button>
+        <button class="x" id="btnCloseDetail" style="margin-left:auto;border:0;background:transparent;color:var(--muted)" title="Close">✕</button>
+      </div>
+      <div class="body" id="detailBody"></div>
+    </aside>
+  </div>
+
+  <footer class="statusbar">
+    <span id="stLib"></span>
+    <span id="stFile"><span class="dot"></span>Library file: not linked</span>
+    <span class="right"><span id="stSaved">Saved</span><span id="stStyle"></span><span>v1.0.0</span></span>
+  </footer>
+</div>
+
+<div id="modals"></div>
+<div id="toasts"></div>
+<input type="file" id="fileInput" class="hidden" accept=".bib,.bibtex,.ris,.json,.txt,.lexiref">
+
+<script src="lexiref-core.js"></script>
+<script>
+/* ==================================================================== */
+/*  LexiRef app                                                          */
+/* ==================================================================== */
+(function () {
+'use strict';
+var L = window.LexiRef;
+var $ = function (s, r) { return (r || document).querySelector(s); };
+var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var esc = L.esc;
+
+/* ---------- Icons ---------- */
+var ICONS = {
+  article: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7M9 9h3"/>',
+  book: '<path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 0-3 3z"/><path d="M4 17a3 3 0 0 1 3-3h11"/>',
+  chapter: '<path d="M5 3h12a2 2 0 0 1 2 2v16H7a2 2 0 0 1-2-2z"/><path d="M5 17h12M9 7h6"/>',
+  conf: '<path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6"/>',
+  thesis: '<path d="m3 9 9-4 9 4-9 4z"/><path d="M7 11v4c0 1.5 2.5 3 5 3s5-1.5 5-3v-4M21 9v6"/>',
+  report: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/>',
+  web: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  preprint: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 15l2 2 4-4"/>',
+  dataset: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/>',
+  patent: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.8.7 1.5 1.5 1.5 2.1h4c0-.6.7-1.4 1.5-2.1A6 6 0 0 0 12 3z"/>',
+  standard: '<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/>',
+  software: '<path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/>',
+  other: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/>',
+  star: '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  edit: '<path d="M4 20h4l11-11-4-4L4 16z"/><path d="m13 7 4 4"/>',
+  trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  folder: '<path d="M3 6h6l2 2h10v11H3z"/>',
+  tag: '<path d="M3 12V4h8l9 9-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/>',
+  check: '<path d="m5 12 4 4L19 6"/>',
+  warn: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
+  import: '<path d="M12 3v12M7 10l5 5 5-5M4 19h16"/>',
+  export: '<path d="M12 15V3M7 8l5-5 5 5M4 19h16"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  word: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="m8 11 1.5 6 1.5-4 1.5 4L14 11"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  inbox: '<path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 5h14l2 8v6H3v-6z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  shield: '<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
+  dup: '<rect x="3" y="3" width="11" height="11" rx="2"/><rect x="10" y="10" width="11" height="11" rx="2"/>',
+  external: '<path d="M14 4h6v6M20 4l-9 9M19 14v6H4V5h6"/>',
+  keyboard: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/>'
+};
+function ic(name, cls) { return '<svg class="ic ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || ICONS.other) + '</svg>'; }
+
+/* ---------- State ---------- */
+var state = {
+  lib: { collections: [], items: [] },
+  settings: { style: 'apa', theme: 'system', markRetracted: false, autoLink: true, narrative: false, lastBackup: '', welcomed: false, superscript: false },
+  view: { kind: 'all', id: null },
+  query: '', sort: 'added-desc', typeFilter: '', tagFilter: null,
+  selected: {}, active: null, tab: 'overview', limit: 300,
+  dirty: false, fileHandle: null, filePermission: 'none', undo: null
+};
+var SMART = [
+  { kind: 'all', label: 'All references', icon: 'layers' },
+  { kind: 'recent', label: 'Recently added', icon: 'clock' },
+  { kind: 'fav', label: 'Favorites', icon: 'star' },
+  { kind: 'flagged', label: 'Flagged / retracted', icon: 'warn' },
+  { kind: 'unfiled', label: 'Unfiled', icon: 'inbox' }
+];
+
+/* ---------- Storage (IndexedDB with localStorage fallback) ---------- */
+var DB = (function () {
+  var dbp = null;
+  function open() {
+    if (dbp) return dbp;
+    dbp = new Promise(function (res, rej) {
+      if (!window.indexedDB) return rej(new Error('no idb'));
+      var r = indexedDB.open('lexiref', 1);
+      r.onupgradeneeded = function () { r.result.createObjectStore('kv'); };
+      r.onsuccess = function () { res(r.result); };
+      r.onerror = function () { rej(r.error); };
+    });
+    return dbp;
+  }
+  return {
+    get: function (key) {
+      return open().then(function (db) { return new Promise(function (res, rej) { var t = db.transaction('kv', 'readonly').objectStore('kv').get(key); t.onsuccess = function () { res(t.result); }; t.onerror = function () { rej(t.error); }; }); })
+        .catch(function () { try { var v = localStorage.getItem('lexiref:' + key); return v ? JSON.parse(v) : undefined; } catch (e) { return undefined; } });
+    },
+    set: function (key, val) {
+      return open().then(function (db) { return new Promise(function (res, rej) { var t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(val, key); t.oncomplete = function () { res(); }; t.onerror = function () { rej(t.error); }; }); })
+        .catch(function () { try { localStorage.setItem('lexiref:' + key, JSON.stringify(val)); } catch (e) {} });
+    }
+  };
+})();
+var saveTimer = null;
+function markDirty() {
+  state.dirty = true; $('#stSaved').textContent = 'Saving…';
+  clearTimeout(saveTimer); saveTimer = setTimeout(persist, 350);
+}
+function persist() {
+  return DB.set('library', state.lib).then(function () {
+    state.dirty = false; $('#stSaved').textContent = 'Saved';
+    writeLinkedFile();
+  }).catch(function () { $('#stSaved').textContent = 'Save failed'; });
+}
+function saveSettings() { DB.set('settings', state.settings); }
+window.addEventListener('beforeunload', function () { if (state.dirty) persist(); });
+
+/* ---------- Toasts / dialogs ---------- */
+function toast(msg, opts) {
+  opts = opts || {};
+  var el = document.createElement('div'); el.className = 'toast ' + (opts.type || '');
+  el.innerHTML = '<span>' + esc(msg) + '</span>' + (opts.action ? '<button>' + esc(opts.action) + '</button>' : '');
+  if (opts.action) $('button', el).onclick = function () { opts.onAction(); el.remove(); };
+  $('#toasts').appendChild(el);
+  setTimeout(function () { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(function () { el.remove(); }, 300); }, opts.duration || 3200);
+}
+function modal(opts) {
+  var ov = document.createElement('div'); ov.className = 'overlay';
+  ov.innerHTML = '<div class="modal ' + (opts.size || '') + '" role="dialog" aria-modal="true"><header><h3>' + esc(opts.title) + '</h3><button class="x" title="Close">✕</button></header><div class="content">' + (opts.body || '') + '</div>' + (opts.footer !== false ? '<footer>' + (opts.footer || '<span class="spacer"></span><button class="btn" data-close>Close</button>') + '</footer>' : '') + '</div>';
+  function close() { ov.remove(); document.removeEventListener('keydown', onKey); if (opts.onClose) opts.onClose(); }
+  function onKey(e) { if (e.key === 'Escape') { e.stopPropagation(); close(); } }
+  $('header .x', ov).onclick = close;
+  $$('[data-close]', ov).forEach(function (b) { b.onclick = close; });
+  ov.addEventListener('mousedown', function (e) { if (e.target === ov && !opts.sticky) close(); });
+  document.addEventListener('keydown', onKey);
+  $('#modals').appendChild(ov);
+  var first = $('input:not([type=hidden]), textarea, select, button.primary', $('.content', ov));
+  if (first && opts.focus !== false) setTimeout(function () { first.focus(); }, 30);
+  if (opts.onOpen) opts.onOpen(ov, close);
+  ov.close = close;
+  return ov;
+}
+function confirmDlg(title, msg, okLabel, danger) {
+  return new Promise(function (res) {
+    var m = modal({ title: title, size: 'narrow', body: '<p style="margin:0;line-height:1.5">' + msg + '</p>', footer: '<span class="spacer"></span><button class="btn" data-close>Cancel</button><button class="btn ' + (danger ? 'danger' : 'primary') + '" id="okBtn">' + esc(okLabel || 'OK') + '</button>', onClose: function () { res(false); } });
+    $('#okBtn', m).onclick = function () { res(true); m.close(); };
+    $('#okBtn', m).focus();
+  });
+}
+function promptDlg(title, label, value, okLabel) {
+  return new Promise(function (res) {
+    var m = modal({ title: title, size: 'narrow', body: '<div class="field"><label class="f">' + esc(label) + '</label><input type="text" id="pInput" value="' + esc(value || '') + '"></div>', footer: '<span class="spacer"></span><button class="btn" data-close>Cancel</button><button class="btn primary" id="okBtn">' + esc(okLabel || 'OK') + '</button>', onClose: function () { res(null); } });
+    var inp = $('#pInput', m);
+    function ok() { var v = inp.value.trim(); res(v); m.close(); }
+    $('#okBtn', m).onclick = ok;
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') ok(); });
+  });
+}
+function showMenu(x, y, items) {
+  closeMenu();
+  var m = document.createElement('div'); m.className = 'menu'; m.id = 'ctxMenu';
+  m.innerHTML = items.map(function (it) {
+    if (it === '-') return '<hr>';
+    if (it.label && it.header) return '<div class="mlabel">' + esc(it.label) + '</div>';
+    return '<button class="' + (it.danger ? 'danger' : '') + '" ' + (it.disabled ? 'disabled' : '') + '>' + (it.icon ? ic(it.icon) : '') + '<span>' + esc(it.label) + '</span>' + (it.sc ? '<span class="sc">' + esc(it.sc) + '</span>' : '') + '</button>';
+  }).join('');
+  var btns = $$('button', m), k = 0;
+  items.forEach(function (it) { if (it === '-' || it.header) return; var b = btns[k++]; b.onclick = function () { closeMenu(); it.action(); }; });
+  document.body.appendChild(m);
+  var w = m.offsetWidth, h = m.offsetHeight;
+  m.style.left = Math.min(x, window.innerWidth - w - 8) + 'px'; m.style.top = Math.min(y, window.innerHeight - h - 8) + 'px';
+  setTimeout(function () { document.addEventListener('mousedown', outside); document.addEventListener('keydown', escMenu); }, 0);
+  function outside(e) { if (!m.contains(e.target)) closeMenu(); }
+  function escMenu(e) { if (e.key === 'Escape') closeMenu(); }
+  m._cleanup = function () { document.removeEventListener('mousedown', outside); document.removeEventListener('keydown', escMenu); };
+}
+function closeMenu() { var m = $('#ctxMenu'); if (m) { if (m._cleanup) m._cleanup(); m.remove(); } }
+
+/* ---------- Clipboard & downloads ---------- */
+function copyRich(html, text) {
+  var p = null;
+  if (navigator.clipboard && window.ClipboardItem) {
+    try { p = navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([text], { type: 'text/plain' }) })]); } catch (e) { p = null; }
+  }
+  if (!p) p = Promise.reject(new Error('Clipboard API unavailable'));
+  return p.then(function () { return true; }, function () {
+    var el = document.createElement('div'); el.contentEditable = 'true'; el.innerHTML = html; el.style.cssText = 'position:fixed;left:-9999px;top:0;white-space:pre-wrap';
+    document.body.appendChild(el);
+    var range = document.createRange(); range.selectNodeContents(el); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    sel.removeAllRanges(); el.remove();
+    if (ok) return true;
+    return navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(text).then(function () { return true; }, function () { return false; }) : false;
+  });
+}
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return copyRich(esc(text), text); });
+  return copyRich(esc(text), text);
+}
+function download(name, data, mime) {
+  var blob = data instanceof Blob ? data : new Blob([data], { type: mime || 'application/octet-stream' });
+  if (window.showSaveFilePicker) {
+    var ext = name.slice(name.lastIndexOf('.'));
+    return window.showSaveFilePicker({ suggestedName: name, types: [{ description: ext.slice(1).toUpperCase() + ' file', accept: (function () { var o = {}; o[blob.type || 'application/octet-stream'] = [ext]; return o; })() }] })
+      .then(function (h) { return h.createWritable().then(function (w) { return w.write(blob).then(function () { return w.close(); }); }); })
+      .then(function () { toast('Saved ' + name, { type: 'ok' }); return true; })
+      .catch(function (e) { if (e && e.name === 'AbortError') return false; return anchorDownload(name, blob); });
+  }
+  return Promise.resolve(anchorDownload(name, blob));
+}
+function anchorDownload(name, blob) {
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  toast('Downloaded ' + name, { type: 'ok' }); return true;
+}
+
+/* ---------- Derived data ---------- */
+function itemById(id) { for (var i = 0; i < state.lib.items.length; i++) if (state.lib.items[i].id === id) return state.lib.items[i]; return null; }
+function collById(id) { for (var i = 0; i < state.lib.collections.length; i++) if (state.lib.collections[i].id === id) return state.lib.collections[i]; return null; }
+function allTags() { var m = {}; state.lib.items.forEach(function (it) { (it.tags || []).forEach(function (t) { m[t] = (m[t] || 0) + 1; }); }); return Object.keys(m).sort(function (a, b) { return a.localeCompare(b); }).map(function (t) { return { tag: t, n: m[t] }; }); }
+function authorsLine(it) { var n = it.authors && it.authors.length ? it.authors : it.editors; if (!n || !n.length) return 'Unknown author'; var s = n.slice(0, 3).map(function (x) { return x.literal ? x.literal : x.family; }).join(', '); return n.length > 3 ? s + ' et al.' : s; }
+function sourceLine(it) {
+  switch (it.type) {
+    case 'journalArticle': return L.stripHtml([it.containerTitle, it.volume ? it.volume + (it.issue ? '(' + it.issue + ')' : '') : '', it.pages].filter(Boolean).join(', '));
+    case 'book': return [it.edition ? it.edition + ' ed.' : '', it.publisher].filter(Boolean).join(', ');
+    case 'thesis': return [it.genre, it.institution].filter(Boolean).join(', ');
+    case 'report': return [it.institution || it.publisher, it.number].filter(Boolean).join(', ');
+    case 'webpage': return it.containerTitle || it.url;
+    case 'preprint': return [it.containerTitle, it.number].filter(Boolean).join(' ');
+    case 'standard': return [it.number, it.publisher].filter(Boolean).join(', ');
+    case 'patent': return [it.place, it.number].filter(Boolean).join(' ');
+    default: return it.containerTitle || it.publisher || it.institution || '';
+  }
+}
+function inView(it) {
+  var v = state.view;
+  if (v.kind === 'collection') return (it.collections || []).indexOf(v.id) >= 0;
+  if (v.kind === 'fav') return !!it.favorite;
+  if (v.kind === 'flagged') return !!it.retracted || (it.integrity && it.integrity.status === 'retracted');
+  if (v.kind === 'unfiled') return !(it.collections && it.collections.length);
+  if (v.kind === 'recent') return (Date.now() - new Date(it.added).getTime()) < 14 * 86400000;
+  return true;
+}
+function matchesQuery(it, q) {
+  if (!q) return true;
+  var hay = [it.title, authorsLine(it), (it.authors || []).map(L.nameDisplay).join(' '), it.year, it.containerTitle, it.doi, it.publisher, it.institution, (it.tags || []).join(' '), it.notes, it.abstract, it.citeKey].join(' ').toLowerCase();
+  return q.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
+}
+function sortItems(arr) {
+  var s = state.sort, k = function (it) { var n = it.authors && it.authors[0]; return (n ? (n.literal || n.family) : it.title || '').toLowerCase(); };
+  arr.sort(function (a, b) {
+    switch (s) {
+      case 'added-asc': return a.added < b.added ? -1 : 1;
+      case 'author': return k(a).localeCompare(k(b)) || (b.year || 0) - (a.year || 0);
+      case 'year-desc': return (b.year || 0) - (a.year || 0) || k(a).localeCompare(k(b));
+      case 'year-asc': return (a.year || 9999) - (b.year || 9999) || k(a).localeCompare(k(b));
+      case 'title': return (a.title || '').localeCompare(b.title || '');
+      case 'modified-desc': return a.modified < b.modified ? 1 : -1;
+      default: return a.added < b.added ? 1 : -1;
+    }
+  });
+  return arr;
+}
+function listed() {
+  var q = state.query.trim().toLowerCase();
+  var arr = state.lib.items.filter(function (it) { return inView(it) && (!state.typeFilter || it.type === state.typeFilter) && (!state.tagFilter || (it.tags || []).indexOf(state.tagFilter) >= 0) && matchesQuery(it, q); });
+  return sortItems(arr);
+}
+function selectedItems() { return state.lib.items.filter(function (it) { return state.selected[it.id]; }); }
+function targetItems() { var s = selectedItems(); if (s.length) return s; var a = state.active && itemById(state.active); return a ? [a] : []; }
+
+/* ---------- Rendering ---------- */
+function render() { renderSidebar(); renderList(); renderDetail(); renderStatus(); }
+function renderSidebar() {
+  var sb = $('#sidebar'), items = state.lib.items, html = '';
+  var counts = { all: items.length, recent: 0, fav: 0, flagged: 0, unfiled: 0 };
+  items.forEach(function (it) { if ((Date.now() - new Date(it.added).getTime()) < 14 * 86400000) counts.recent++; if (it.favorite) counts.fav++; if (it.retracted || (it.integrity && it.integrity.status === 'retracted')) counts.flagged++; if (!(it.collections && it.collections.length)) counts.unfiled++; });
+  html += '<h4>Library</h4>';
+  SMART.forEach(function (s) { html += '<div class="nav-item ' + (state.view.kind === s.kind ? 'active' : '') + '" data-kind="' + s.kind + '">' + ic(s.icon) + '<span class="name">' + s.label + '</span><span class="count">' + counts[s.kind] + '</span></div>'; });
+  html += '<h4>Collections <button id="btnNewColl" title="New collection">' + ic('plus') + '</button></h4>';
+  if (!state.lib.collections.length) html += '<div class="muted small" style="padding:2px 10px 6px">No collections yet. Create one to organise references by project or paper.</div>';
+  state.lib.collections.forEach(function (c) {
+    var n = items.filter(function (it) { return (it.collections || []).indexOf(c.id) >= 0; }).length;
+    html += '<div class="nav-item ' + (state.view.kind === 'collection' && state.view.id === c.id ? 'active' : '') + '" data-kind="collection" data-id="' + c.id + '" title="Drop references here to add them">' + ic('folder') + '<span class="name ellipsis">' + esc(c.name) + '</span><span class="count">' + n + '</span></div>';
+  });
+  var tags = allTags();
+  if (tags.length) {
+    html += '<h4>Tags' + (state.tagFilter ? ' <button id="btnClearTag" title="Clear tag filter">✕</button>' : '') + '</h4><div class="tag-cloud">';
+    tags.slice(0, 60).forEach(function (t) { html += '<span class="chip ' + (state.tagFilter === t.tag ? 'active' : '') + '" data-tag="' + esc(t.tag) + '">' + esc(t.tag) + ' <span class="muted">' + t.n + '</span></span>'; });
+    html += '</div>';
+  }
+  sb.innerHTML = html;
+  $$('.nav-item', sb).forEach(function (el) {
+    el.onclick = function () { state.view = { kind: el.dataset.kind, id: el.dataset.id || null }; state.selected = {}; state.limit = 300; render(); };
+    if (el.dataset.kind === 'collection') {
+      el.oncontextmenu = function (e) { e.preventDefault(); collectionMenu(e.clientX, e.clientY, el.dataset.id); };
+      el.addEventListener('dragover', function (e) { e.preventDefault(); el.classList.add('drop-target'); });
+      el.addEventListener('dragleave', function () { el.classList.remove('drop-target'); });
+      el.addEventListener('drop', function (e) { e.preventDefault(); el.classList.remove('drop-target'); var ids = (e.dataTransfer.getData('text/lexiref-ids') || '').split(',').filter(Boolean); addToCollection(ids, el.dataset.id); });
+    }
+  });
+  var nb = $('#btnNewColl', sb); if (nb) nb.onclick = function (e) { e.stopPropagation(); newCollection(); };
+  var ct = $('#btnClearTag', sb); if (ct) ct.onclick = function (e) { e.stopPropagation(); state.tagFilter = null; render(); };
+  $$('.chip[data-tag]', sb).forEach(function (el) { el.onclick = function () { state.tagFilter = state.tagFilter === el.dataset.tag ? null : el.dataset.tag; render(); }; });
+}
+function viewTitle() {
+  if (state.view.kind === 'collection') { var c = collById(state.view.id); return c ? c.name : 'Collection'; }
+  for (var i = 0; i < SMART.length; i++) if (SMART[i].kind === state.view.kind) return SMART[i].label;
+  return 'References';
+}
+function renderList() {
+  var arr = listed(), list = $('#refList'), style = state.settings.style;
+  $('#viewTitle').textContent = viewTitle() + (state.tagFilter ? ' · #' + state.tagFilter : '');
+  $('#viewCount').textContent = arr.length + (arr.length === 1 ? ' reference' : ' references') + (state.query ? ' matching' : '');
+  var sel = selectedItems().length;
+  $('#bulkbar').classList.toggle('hidden', sel < 1);
+  $('#bulkCount').textContent = sel + ' selected';
+  if (!arr.length) {
+    var empty = !state.lib.items.length;
+    list.innerHTML = '<div class="empty">' + ic(empty ? 'layers' : 'search', 'lg') + '<h3>' + (empty ? 'Your library is empty' : 'No references here') + '</h3><p>' + (empty ? 'Add a reference by DOI, import a BibTeX or RIS file, or enter one manually.' : 'Try another search, view or filter.') + '</p>' + (empty ? '<div class="btn-row"><button class="btn primary" id="emptyLookup">' + ic('search') + 'Add by DOI or title</button><button class="btn" id="emptyImport">' + ic('import') + 'Import file</button><button class="btn" id="emptyManual">' + ic('plus') + 'Manual entry</button><button class="btn ghost" id="emptySample">Load sample library</button></div>' : '') + '</div>';
+    if (empty) { $('#emptyLookup').onclick = openLookup; $('#emptyImport').onclick = openImport; $('#emptyManual').onclick = function () { openEditor(null); }; $('#emptySample').onclick = loadSample; }
+    return;
+  }
+  var numeric = L.STYLES[style].numeric, html = '';
+  arr.slice(0, state.limit).forEach(function (it, i) {
+    var flagged = it.retracted || (it.integrity && it.integrity.status === 'retracted');
+    html += '<div class="row ' + (state.selected[it.id] ? 'selected' : '') + ' ' + (state.active === it.id ? 'active' : '') + '" data-id="' + it.id + '" draggable="true">' +
+      '<input type="checkbox" ' + (state.selected[it.id] ? 'checked' : '') + ' title="Select">' +
+      '<div class="ticon" title="' + esc(L.TYPES[it.type].label) + '">' + ic(L.TYPES[it.type].icon) + '</div>' +
+      '<div style="min-width:0"><div class="t">' + (numeric ? '<span class="muted" style="font-weight:500">[' + (i + 1) + ']</span>' : '') + '<span class="txt">' + esc(it.title || '(untitled)') + '</span>' + (it.favorite ? '<span class="star">' + ic('star') + '</span>' : '') + (flagged ? '<span class="badge retracted">Retracted</span>' : '') + '</div>' +
+      '<div class="sub ellipsis">' + esc(authorsLine(it)) + (sourceLine(it) ? ' · ' + esc(sourceLine(it)) : '') + '</div></div>' +
+      '<div class="yr">' + (it.year || '—') + '</div>' +
+      '<div class="meta"><span class="badge type">' + esc(L.TYPES[it.type].label) + '</span>' + (it.tags && it.tags.length ? '<span class="ellipsis" style="max-width:120px">' + esc(it.tags.slice(0, 3).join(', ')) + '</span>' : '') + '</div></div>';
+  });
+  if (arr.length > state.limit) html += '<div class="showmore"><button class="btn" id="btnMoreRows">Show more (' + (arr.length - state.limit) + ' remaining)</button></div>';
+  list.innerHTML = html;
+  var mb = $('#btnMoreRows'); if (mb) mb.onclick = function () { state.limit += 300; renderList(); };
+  $$('.row', list).forEach(function (row) {
+    var id = row.dataset.id;
+    $('input', row).onclick = function (e) { e.stopPropagation(); if (state.selected[id]) delete state.selected[id]; else state.selected[id] = true; renderList(); };
+    row.onclick = function (e) {
+      if (e.ctrlKey || e.metaKey) { if (state.selected[id]) delete state.selected[id]; else state.selected[id] = true; state.active = id; renderList(); renderDetail(); return; }
+      if (e.shiftKey && state.active) { var ids = arr.map(function (x) { return x.id; }), a = ids.indexOf(state.active), b = ids.indexOf(id); if (a >= 0 && b >= 0) { for (var k = Math.min(a, b); k <= Math.max(a, b); k++) state.selected[ids[k]] = true; renderList(); return; } }
+      state.active = id; renderList(); renderDetail(true);
+    };
+    row.ondblclick = function () { openEditor(id); };
+    row.oncontextmenu = function (e) { e.preventDefault(); if (!state.selected[id]) { state.active = id; renderList(); renderDetail(); } itemMenu(e.clientX, e.clientY, id); };
+    row.addEventListener('dragstart', function (e) { var ids = state.selected[id] ? Object.keys(state.selected) : [id]; e.dataTransfer.setData('text/lexiref-ids', ids.join(',')); e.dataTransfer.effectAllowed = 'copy'; });
+  });
+}
+function fmtDate(iso) { if (!iso) return ''; var d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }); }
+function renderDetail(open) {
+  var pane = $('#detailPane'), body = $('#detailBody'), it = state.active && itemById(state.active);
+  if (open) pane.classList.add('open');
+  $$('.tabs button[data-tab]', pane).forEach(function (b) { b.classList.toggle('active', b.dataset.tab === state.tab); });
+  if (!it) { body.innerHTML = '<div class="empty">' + ic('info', 'lg') + '<h3>Nothing selected</h3><p>Select a reference to see its details, citations and notes.</p></div>'; return; }
+  var style = state.settings.style, flagged = it.retracted || (it.integrity && it.integrity.status === 'retracted');
+  if (state.tab === 'overview') {
+    var h = '';
+    if (flagged) h += '<div class="warnbox">' + ic('warn') + '<div><b>Retracted or flagged source.</b> ' + esc(it.retractionNote || 'Check the publisher’s retraction notice before citing.') + '</div></div>';
+    else if (it.integrity && it.integrity.status === 'clean') h += '<div class="okbox">✔ No retraction found · checked ' + esc(fmtDate(it.integrity.checked)) + (it.integrity.note ? ' · ' + esc(it.integrity.note) : '') + '</div>';
+    h += '<div class="btn-row" style="margin-bottom:10px"><span class="badge type">' + ic(L.TYPES[it.type].icon) + esc(L.TYPES[it.type].label) + '</span>' + (it.favorite ? '<span class="badge fav">★ Favorite</span>' : '') + '</div>';
+    h += '<h3>' + esc(it.title || '(untitled)') + '</h3>';
+    h += '<div class="text-2" style="line-height:1.5">' + esc((it.authors || []).map(L.nameDisplay).join(', ') || (it.editors && it.editors.length ? (it.editors.map(L.nameDisplay).join(', ') + ' (Eds.)') : '')) + '</div>';
+    h += '<div class="btn-row" style="margin:14px 0 6px"><button class="btn sm primary" data-act="edit">' + ic('edit') + 'Edit</button><button class="btn sm" data-act="cite">' + ic('copy') + 'Copy citation</button><button class="btn sm" data-act="ref">' + ic('copy') + 'Copy reference</button><button class="btn sm" data-act="fav">' + ic('star') + (it.favorite ? 'Unfavorite' : 'Favorite') + '</button>' + (it.doi || it.url ? '<button class="btn sm" data-act="open">' + ic('external') + 'Open</button>' : '') + '</div>';
+    h += '<dl class="kv">';
+    function kv(k, v, raw) { if (v !== undefined && v !== null && String(v).trim() !== '') h += '<dt>' + k + '</dt><dd>' + (raw ? v : esc(v)) + '</dd>'; }
+    kv('Year', it.year ? it.year + (it.month ? ', ' + L.MONTHS[it.month - 1] + (it.day ? ' ' + it.day : '') : '') : '');
+    var cl = L.TYPES[it.type].container || 'Source'; if (it.type === 'journalArticle') cl = 'Journal'; if (it.type === 'bookSection') cl = 'Book'; if (it.type === 'conferencePaper') cl = 'Proceedings'; if (it.type === 'webpage') cl = 'Website';
+    kv(cl, it.containerTitle);
+    if (it.editors && it.editors.length && it.type !== 'book') kv('Editors', it.editors.map(L.nameDisplay).join(', '));
+    kv('Volume / issue', [it.volume, it.issue ? '(' + it.issue + ')' : ''].join(''));
+    kv('Pages', it.pages); kv('Edition', it.edition); kv('Series', it.series); kv('Publisher', it.publisher); kv('Place', it.place);
+    kv(it.type === 'thesis' ? 'University' : 'Institution', it.institution); kv(it.type === 'thesis' ? 'Thesis type' : 'Genre', it.genre); kv('Number', it.number); kv('Version', it.version);
+    kv('DOI', it.doi ? '<a href="' + esc(L.doiUrl(it.doi)) + '" target="_blank" rel="noopener">' + esc(it.doi) + '</a>' : '', true);
+    kv('URL', it.url ? '<a href="' + esc(it.url) + '" target="_blank" rel="noopener" class="ellipsis" style="display:block">' + esc(it.url) + '</a>' : '', true);
+    kv('ISBN', it.isbn); kv('ISSN', it.issn); kv('Accessed', it.accessed); kv('Language', it.language);
+    kv('Tags', it.tags && it.tags.length ? it.tags.map(function (t) { return '<span class="chip" data-tag="' + esc(t) + '">' + esc(t) + '</span>'; }).join(' ') : '', true);
+    kv('Collections', (it.collections || []).map(function (c) { var o = collById(c); return o ? '<span class="chip">' + esc(o.name) + '</span>' : ''; }).join(' '), true);
+    kv('Attachment', it.attachment ? (/^https?:\/\//.test(it.attachment) ? '<a href="' + esc(it.attachment) + '" target="_blank" rel="noopener">' + esc(it.attachment) + '</a>' : esc(it.attachment)) : '', true);
+    kv('Cite key', it.citeKey || L.citeKey(it)); kv('Added', fmtDate(it.added)); kv('Modified', fmtDate(it.modified));
+    h += '</dl>';
+    if (it.abstract) h += '<div class="section"><h5>Abstract</h5><div style="line-height:1.55;font-size:13.5px;color:var(--text-2)">' + esc(it.abstract) + '</div></div>';
+    body.innerHTML = h;
+    $$('[data-act]', body).forEach(function (b) { b.onclick = function () { itemAction(b.dataset.act, it); }; });
+    $$('.chip[data-tag]', body).forEach(function (c) { c.onclick = function () { state.tagFilter = c.dataset.tag; render(); }; });
+  } else if (state.tab === 'cite') {
+    var inText = L.formatCitation(it, style, { numbers: [listed().map(function (x) { return x.id; }).indexOf(it.id) + 1 || 1], narrative: state.settings.narrative, superscript: state.settings.superscript });
+    var ref = L.formatReference(it, style, null, { markRetracted: state.settings.markRetracted });
+    var h2 = '<div class="section"><label class="f">Style</label><select id="dStyle">' + Object.keys(L.STYLES).map(function (k) { return '<option value="' + k + '" ' + (k === style ? 'selected' : '') + '>' + L.STYLES[k].label + '</option>'; }).join('') + '</select></div>';
+    h2 += '<div class="section"><h5>In-text citation</h5>' + (!L.STYLES[style].numeric ? '<div class="segmented" style="margin-bottom:8px"><button data-nar="0" class="' + (!state.settings.narrative ? 'active' : '') + '">Parenthetical</button><button data-nar="1" class="' + (state.settings.narrative ? 'active' : '') + '">Narrative</button></div>' : '<div class="small muted" style="margin-bottom:6px">Number = position in the current list. The Word add-in numbers citations by order of appearance.</div>') +
+      '<div class="cite-box" id="inTextBox">' + inText.html + '</div><div class="btn-row"><button class="btn sm" data-copy="intext">' + ic('copy') + 'Copy</button><input type="text" id="citePages" placeholder="Pages, e.g. p. 12" style="width:140px;padding:5px 9px"></div></div>';
+    h2 += '<div class="section"><h5>Reference list entry</h5><div class="cite-box sm" id="refBox">' + ref.html + '</div><div class="btn-row"><button class="btn sm primary" data-copy="ref">' + ic('copy') + 'Copy (rich text)</button><button class="btn sm" data-copy="refplain">Copy plain</button><button class="btn sm" data-copy="bibtex">Copy BibTeX</button></div></div>';
+    h2 += '<div class="infobox">Paste into Word with <kbd>Ctrl</kbd>+<kbd>V</kbd> — italics are preserved. For tracked, auto-numbered citations use the LexiRef Word add-in (menu ⋯ → Word add-in).</div>';
+    body.innerHTML = h2;
+    $('#dStyle', body).onchange = function () { setStyle(this.value); };
+    $$('[data-nar]', body).forEach(function (b) { b.onclick = function () { state.settings.narrative = b.dataset.nar === '1'; saveSettings(); renderDetail(); }; });
+    $('#citePages', body).oninput = function () { var c = L.formatCitation(it, style, { numbers: [listed().map(function (x) { return x.id; }).indexOf(it.id) + 1 || 1], narrative: state.settings.narrative, pages: this.value.trim(), superscript: state.settings.superscript }); $('#inTextBox', body).innerHTML = c.html; };
+    $$('[data-copy]', body).forEach(function (b) {
+      b.onclick = function () {
+        var w = b.dataset.copy;
+        if (w === 'intext') { var hh = $('#inTextBox', body).innerHTML; copyRich(hh, L.stripHtml(hh)).then(function () { toast('Citation copied'); }); }
+        else if (w === 'ref') copyRich(ref.html, ref.text).then(function () { toast('Reference copied — paste into Word'); });
+        else if (w === 'refplain') copyText(ref.text).then(function () { toast('Plain-text reference copied'); });
+        else if (w === 'bibtex') copyText(L.bibtex.serialize([it])).then(function () { toast('BibTeX copied'); });
+      };
+    });
+  } else {
+    body.innerHTML = '<div class="section"><label class="f">Notes for this reference</label><textarea id="noteArea" style="min-height:260px" placeholder="Key findings, quotes with page numbers, how you plan to use this source…">' + esc(it.notes || '') + '</textarea><div class="hint">Saved automatically.</div></div>' + (it.abstract ? '<div class="section"><h5>Abstract</h5><div style="line-height:1.55;font-size:13.5px;color:var(--text-2)">' + esc(it.abstract) + '</div></div>' : '');
+    var ta = $('#noteArea', body), t;
+    ta.oninput = function () { clearTimeout(t); t = setTimeout(function () { it.notes = ta.value; it.modified = new Date().toISOString(); markDirty(); }, 400); };
+  }
+}
+function renderStatus() {
+  $('#stLib').textContent = state.lib.items.length + ' references · ' + state.lib.collections.length + ' collections';
+  $('#stStyle').textContent = L.STYLES[state.settings.style].short;
+  var f = $('#stFile');
+  if (state.fileHandle) f.innerHTML = '<span class="dot ' + (state.filePermission === 'granted' ? 'on' : '') + '"></span>Library file: ' + esc(state.fileHandle.name) + (state.filePermission === 'granted' ? ' (auto-saved)' : ' — <a href="#" id="reconnectFile">reconnect</a>');
+  else f.innerHTML = '<span class="dot"></span>Library file: not linked';
+  var rc = $('#reconnectFile'); if (rc) rc.onclick = function (e) { e.preventDefault(); reconnectFile(); };
+}
+function setStyle(s) { state.settings.style = s; $('#styleSelect').value = s; saveSettings(); renderList(); renderDetail(); renderStatus(); }
+
+/* ---------- Item actions ---------- */
+function touch(it) { it.modified = new Date().toISOString(); markDirty(); }
+function itemAction(act, it) {
+  switch (act) {
+    case 'edit': openEditor(it.id); break;
+    case 'fav': it.favorite = !it.favorite; touch(it); render(); break;
+    case 'open': window.open(it.doi ? L.doiUrl(it.doi) : it.url, '_blank', 'noopener'); break;
+    case 'cite': copyCitation([it]); break;
+    case 'ref': copyReferences([it]); break;
+    case 'delete': deleteItems([it]); break;
+    case 'dup': { var c = L.normalizeItem(JSON.parse(JSON.stringify(it))); c.id = L.uid('r_'); c.title = it.title + ' (copy)'; c.added = c.modified = new Date().toISOString(); state.lib.items.unshift(c); state.active = c.id; markDirty(); render(); break; }
+    case 'retract': it.retracted = !it.retracted; if (!it.retracted) { it.retractionNote = ''; it.integrity = { status: 'unchecked', checked: '' }; } else it.retractionNote = it.retractionNote || 'Marked manually'; touch(it); render(); break;
+  }
+}
+function copyCitation(items) {
+  var style = state.settings.style, ids = listed().map(function (x) { return x.id; });
+  var nums = items.map(function (it) { return ids.indexOf(it.id) + 1 || 1; });
+  var c = L.formatCitation(items, style, { numbers: nums, narrative: state.settings.narrative, superscript: state.settings.superscript });
+  copyRich(c.html, c.text).then(function (ok) { toast(ok ? 'Citation copied: ' + c.text : 'Copy failed', { type: ok ? '' : 'err' }); });
+}
+function copyReferences(items) {
+  var style = state.settings.style;
+  var bib = L.bibliography(items, style, { markRetracted: state.settings.markRetracted });
+  var html = items.length === 1 ? bib.entries[0].html : bib.html;
+  copyRich(html, bib.text).then(function (ok) { toast(ok ? (items.length === 1 ? 'Reference copied — paste into Word' : items.length + ' references copied') : 'Copy failed', { type: ok ? '' : 'err' }); });
+}
+function deleteItems(items) {
+  if (!items.length) return;
+  var ids = {}; items.forEach(function (it) { ids[it.id] = true; });
+  var removed = state.lib.items.filter(function (it) { return ids[it.id]; });
+  state.lib.items = state.lib.items.filter(function (it) { return !ids[it.id]; });
+  items.forEach(function (it) { delete state.selected[it.id]; if (state.active === it.id) state.active = null; });
+  markDirty(); render();
+  toast(removed.length === 1 ? 'Reference deleted' : removed.length + ' references deleted', { action: 'Undo', duration: 6000, onAction: function () { state.lib.items = removed.concat(state.lib.items); markDirty(); render(); } });
+}
+function itemMenu(x, y, id) {
+  var it = itemById(id); if (!it) return;
+  var multi = selectedItems().length > 1 && state.selected[id], targets = multi ? selectedItems() : [it];
+  var items = [
+    { label: multi ? 'Copy citation (' + targets.length + ')' : 'Copy in-text citation', icon: 'copy', sc: 'Ctrl+Shift+C', action: function () { copyCitation(targets); } },
+    { label: multi ? 'Copy references (' + targets.length + ')' : 'Copy reference entry', icon: 'copy', sc: 'Ctrl+Shift+B', action: function () { copyReferences(targets); } },
+    '-',
+    { label: 'Edit…', icon: 'edit', sc: 'Ctrl+E', disabled: multi, action: function () { openEditor(id); } },
+    { label: it.favorite ? 'Remove from favorites' : 'Add to favorites', icon: 'star', action: function () { targets.forEach(function (t) { t.favorite = !it.favorite; touch(t); }); render(); } },
+    { label: 'Add to collection…', icon: 'folder', action: function () { chooseCollection(targets.map(function (t) { return t.id; })); } },
+    { label: 'Add tag…', icon: 'tag', action: function () { addTagTo(targets); } },
+    { label: 'Look up / refresh from DOI', icon: 'search', disabled: multi || !it.doi, action: function () { refreshFromDOI(it); } },
+    { label: it.retracted ? 'Clear retracted flag' : 'Mark as retracted', icon: 'warn', disabled: multi, action: function () { itemAction('retract', it); } },
+    { label: 'Duplicate', icon: 'dup', disabled: multi, action: function () { itemAction('dup', it); } },
+    '-',
+    { label: multi ? 'Delete ' + targets.length + ' references' : 'Delete', icon: 'trash', sc: 'Del', danger: true, action: function () { deleteItems(targets); } }
+  ];
+  if (state.view.kind === 'collection') items.splice(7, 0, { label: 'Remove from this collection', icon: 'folder', action: function () { targets.forEach(function (t) { t.collections = (t.collections || []).filter(function (c) { return c !== state.view.id; }); touch(t); }); render(); } });
+  showMenu(x, y, items);
+}
+function addToCollection(ids, cid) {
+  var n = 0; ids.forEach(function (id) { var it = itemById(id); if (it && (it.collections || []).indexOf(cid) < 0) { it.collections = (it.collections || []).concat([cid]); touch(it); n++; } });
+  render(); var c = collById(cid); if (n) toast(n + ' added to “' + (c ? c.name : 'collection') + '”');
+}
+function chooseCollection(ids) {
+  if (!state.lib.collections.length) { newCollection().then(function (c) { if (c) addToCollection(ids, c.id); }); return; }
+  var m = modal({ title: 'Add to collection', size: 'narrow', body: state.lib.collections.map(function (c) { return '<button class="btn" style="width:100%;justify-content:flex-start;margin-bottom:6px" data-cid="' + c.id + '">' + ic('folder') + esc(c.name) + '</button>'; }).join('') + '<button class="btn ghost" style="width:100%;justify-content:flex-start" id="newCollInline">' + ic('plus') + 'New collection…</button>', footer: false });
+  $$('[data-cid]', m).forEach(function (b) { b.onclick = function () { addToCollection(ids, b.dataset.cid); m.close(); }; });
+  $('#newCollInline', m).onclick = function () { m.close(); newCollection().then(function (c) { if (c) addToCollection(ids, c.id); }); };
+}
+function newCollection() {
+  return promptDlg('New collection', 'Collection name', '', 'Create').then(function (name) {
+    if (!name) return null;
+    var c = { id: L.uid('c_'), name: name }; state.lib.collections.push(c); markDirty(); render(); return c;
+  });
+}
+function collectionMenu(x, y, cid) {
+  var c = collById(cid); if (!c) return;
+  showMenu(x, y, [
+    { label: 'Rename…', icon: 'edit', action: function () { promptDlg('Rename collection', 'Name', c.name, 'Rename').then(function (n) { if (n) { c.name = n; markDirty(); render(); } }); } },
+    { label: 'Copy bibliography of this collection', icon: 'copy', action: function () { var its = state.lib.items.filter(function (it) { return (it.collections || []).indexOf(cid) >= 0; }); if (its.length) copyReferences(its); else toast('Collection is empty'); } },
+    '-',
+    { label: 'Delete collection', icon: 'trash', danger: true, action: function () { confirmDlg('Delete collection', 'Delete “' + esc(c.name) + '”? The references stay in your library.', 'Delete', true).then(function (ok) { if (!ok) return; state.lib.collections = state.lib.collections.filter(function (x) { return x.id !== cid; }); state.lib.items.forEach(function (it) { it.collections = (it.collections || []).filter(function (x) { return x !== cid; }); }); if (state.view.kind === 'collection' && state.view.id === cid) state.view = { kind: 'all', id: null }; markDirty(); render(); }); } }
+  ]);
+}
+function addTagTo(items) {
+  promptDlg('Add tag', 'Tag (comma-separate several)', '', 'Add').then(function (v) {
+    if (!v) return; var tags = v.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    items.forEach(function (it) { tags.forEach(function (t) { if ((it.tags || []).indexOf(t) < 0) it.tags = (it.tags || []).concat([t]); }); touch(it); });
+    render();
+  });
+}
+function refreshFromDOI(it) {
+  toast('Looking up DOI…');
+  L.crossref.lookupDOI(it.doi).then(function (fresh) {
+    ['title', 'authors', 'year', 'month', 'containerTitle', 'volume', 'issue', 'pages', 'publisher', 'place', 'issn', 'isbn', 'url', 'abstract'].forEach(function (k) { var v = fresh[k]; if ((Array.isArray(v) ? v.length : (v !== '' && v != null)) && (k !== 'abstract' || !it.abstract)) it[k] = v; });
+    if (fresh.type !== 'other') it.type = fresh.type;
+    if (fresh.retracted) { it.retracted = true; it.retractionNote = fresh.retractionNote; it.integrity = { status: 'retracted', checked: new Date().toISOString() }; }
+    touch(it); render(); toast('Metadata refreshed from Crossref', { type: 'ok' });
+  }).catch(function (e) { toast('Lookup failed: ' + (e.message || 'no connection'), { type: 'err' }); });
+}
+
+/* ---------- Editor ---------- */
+function openEditor(id, preset) {
+  var it = id ? JSON.parse(JSON.stringify(itemById(id))) : L.normalizeItem(preset || L.newItem('journalArticle'));
+  var isNew = !id;
+  var m = modal({ title: isNew ? 'Add reference' : 'Edit reference', size: 'wide', sticky: true, body: '<div class="grid3" style="align-items:end"><div class="field"><label class="f">Reference type</label><select id="eType">' + Object.keys(L.TYPES).map(function (k) { return '<option value="' + k + '">' + L.TYPES[k].label + '</option>'; }).join('') + '</select></div><div class="field" style="grid-column:span 2"><label class="f">Quick fill</label><div class="btn-row"><input type="text" id="eDoi" placeholder="Paste a DOI or arXiv ID to fill the form" style="flex:1"><button class="btn" id="eLookup">' + ic('search') + 'Look up</button></div></div></div><div id="eFields"></div>',
+    footer: '<span class="muted small" id="ePreview" style="flex:1;font-family:Georgia,serif"></span><button class="btn" data-close>Cancel</button><button class="btn primary" id="eSave">' + (isNew ? 'Add to library' : 'Save changes') + '</button>' });
+  var typeSel = $('#eType', m); typeSel.value = it.type;
+  function readForm() {
+    $$('[data-f]', m).forEach(function (el) {
+      var k = el.dataset.f, v = el.value;
+      if (k === 'authors' || k === 'editors') it[k] = L.parseNames(v);
+      else if (k === 'tags') it.tags = v.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+      else if (k === 'collections') it.collections = $$('input[data-coll]:checked', m).map(function (c) { return c.dataset.coll; });
+      else it[k] = v.trim();
+    });
+    it.collections = $$('input[data-coll]:checked', m).map(function (c) { return c.dataset.coll; });
+    it.favorite = $('#eFav', m).checked; it.retracted = $('#eRet', m).checked;
+    it.type = typeSel.value;
+  }
+  function renderFields() {
+    var defs = L.TYPE_FIELDS[it.type] || L.TYPE_FIELDS.other, h = '<div class="grid2">';
+    defs.forEach(function (d) {
+      var parts = d.split(':'), k = parts[0], label = parts[1] || L.FIELDS[k].label, f = L.FIELDS[k], v = it[k];
+      var full = k === 'title' || k === 'abstract' || k === 'authors' || k === 'editors' || k === 'url' || k === 'tags' || k === 'attachment';
+      h += '<div class="field" ' + (full ? 'style="grid-column:span 2"' : '') + '><label class="f">' + esc(label) + (k === 'title' ? ' <span style="color:var(--danger)">*</span>' : '') + '</label>';
+      if (f.kind === 'names') h += '<textarea data-f="' + k + '" rows="' + (k === 'authors' ? 3 : 2) + '" placeholder="One per line: Family, Given   —   or   Given Family\n{Organization Name} for institutional authors" spellcheck="false">' + esc(L.namesToText(v || [])) + '</textarea>';
+      else if (f.kind === 'textarea') h += '<textarea data-f="' + k + '" rows="3">' + esc(v || '') + '</textarea>';
+      else if (f.kind === 'month') h += '<select data-f="' + k + '"><option value="">—</option>' + L.MONTHS.map(function (mo, i) { return '<option value="' + (i + 1) + '" ' + (String(v) === String(i + 1) ? 'selected' : '') + '>' + mo + '</option>'; }).join('') + '</select>';
+      else if (f.kind === 'tags') h += '<input type="text" data-f="tags" value="' + esc((v || []).join(', ')) + '" placeholder="e.g. review, to-read, chapter 2">';
+      else if (f.kind === 'date') h += '<input type="date" data-f="' + k + '" value="' + esc(v || '') + '">';
+      else h += '<input type="' + (f.kind === 'number' ? 'text' : f.kind === 'url' ? 'url' : 'text') + '" data-f="' + k + '" value="' + esc(v == null ? '' : v) + '" ' + (k === 'doi' ? 'placeholder="10.1000/xyz123" spellcheck="false"' : k === 'pages' ? 'placeholder="e.g. 218–236"' : '') + '>';
+      if (k === 'authors') h += '<div class="hint">Use braces for organisations, e.g. <code>{World Health Organization}</code>. Hyphenated given names and particles (van, de, al) are handled automatically.</div>';
+      h += '</div>';
+    });
+    h += '</div>';
+    h += '<div class="grid2"><div class="field"><label class="f">Collections</label><div style="display:flex;flex-wrap:wrap;gap:6px">' + (state.lib.collections.length ? state.lib.collections.map(function (c) { return '<label class="check chip"><input type="checkbox" data-coll="' + c.id + '" ' + ((it.collections || []).indexOf(c.id) >= 0 ? 'checked' : '') + '>' + esc(c.name) + '</label>'; }).join('') : '<span class="muted small">No collections yet</span>') + '</div></div><div class="field"><label class="f">Flags</label><div style="display:flex;gap:16px;flex-wrap:wrap;padding-top:6px"><label class="check"><input type="checkbox" id="eFav" ' + (it.favorite ? 'checked' : '') + '>Favorite</label><label class="check"><input type="checkbox" id="eRet" ' + (it.retracted ? 'checked' : '') + '>Retracted / flagged</label></div></div></div>';
+    h += '<div class="field"><label class="f">Notes</label><textarea data-f="notes" rows="2">' + esc(it.notes || '') + '</textarea></div>';
+    $('#eFields', m).innerHTML = h;
+    $$('[data-f]', m).forEach(function (el) { el.addEventListener('input', updatePreview); });
+    updatePreview();
+  }
+  function updatePreview() { readForm(); var r = L.formatReference(it, state.settings.style); $('#ePreview', m).innerHTML = r.html; }
+  typeSel.onchange = function () { readForm(); it.type = typeSel.value; renderFields(); };
+  $('#eLookup', m).onclick = function () {
+    var q = $('#eDoi', m).value.trim(); if (!q) return;
+    var btn = this; btn.disabled = true; btn.textContent = 'Looking up…';
+    var p = /^(arxiv:)?\d{4}\.\d{4,5}(v\d+)?$/i.test(q) ? L.crossref.arxiv(q) : L.crossref.lookupDOI(q);
+    p.then(function (fresh) {
+      var keep = { id: it.id, added: it.added, collections: it.collections, tags: it.tags, notes: it.notes, favorite: it.favorite };
+      it = L.normalizeItem(fresh); for (var k in keep) it[k] = keep[k]; if (!it.tags.length && fresh.tags) it.tags = fresh.tags;
+      typeSel.value = it.type; renderFields(); toast('Form filled from Crossref', { type: 'ok' });
+    }).catch(function (e) { toast('Lookup failed: ' + (e.message || 'no connection') + '. Check the DOI or your internet connection.', { type: 'err', duration: 5000 }); })
+      .then(function () { btn.disabled = false; btn.innerHTML = ic('search') + 'Look up'; });
+  };
+  $('#eSave', m).onclick = function () {
+    readForm();
+    if (!it.title.trim()) { toast('A title is required', { type: 'err' }); $('[data-f=title]', m).focus(); return; }
+    it = L.normalizeItem(it); it.modified = new Date().toISOString();
+    if (isNew) { if (state.view.kind === 'collection' && it.collections.indexOf(state.view.id) < 0) it.collections.push(state.view.id); state.lib.items.unshift(it); state.active = it.id; }
+    else { var idx = state.lib.items.findIndex(function (x) { return x.id === it.id; }); if (idx >= 0) state.lib.items[idx] = it; }
+    markDirty(); m.close(); render(); toast(isNew ? 'Reference added' : 'Changes saved', { type: 'ok' });
+  };
+  renderFields();
+  setTimeout(function () { var t = $('[data-f=title]', m); if (t && isNew && !it.title) t.focus(); }, 40);
+}
+
+/* ---------- Lookup (DOI / arXiv / title search) ---------- */
+function openLookup() {
+  var m = modal({ title: 'Add by DOI, arXiv ID or title', body: '<div class="field"><div class="btn-row"><input type="text" id="lkQuery" placeholder="10.1016/j.eneco.2013.02.004  ·  arXiv:2010.11929  ·  or title keywords" style="flex:1" spellcheck="false"><button class="btn primary" id="lkGo">' + ic('search') + 'Search</button></div><div class="hint">Metadata comes from Crossref (free, public). Requires an internet connection; everything else in LexiRef works offline.</div></div><div id="lkResults"></div>', footer: '<span class="spacer"></span><button class="btn" data-close>Close</button>' });
+  var inp = $('#lkQuery', m), res = $('#lkResults', m);
+  function go() {
+    var q = inp.value.trim(); if (!q) return;
+    res.innerHTML = '<div class="muted" style="padding:14px 0">Searching…</div>';
+    var doi = q.match(/10\.\d{4,9}\/[^\s"<>]+/), arx = q.match(/(?:arxiv:)?\s*(\d{4}\.\d{4,5}(?:v\d+)?)/i);
+    var p = doi ? L.crossref.lookupDOI(doi[0]).then(function (x) { return [x]; }) : (arx && !/\s/.test(q) ? L.crossref.arxiv(arx[1]).then(function (x) { return [x]; }) : L.crossref.search(q, 12));
+    p.then(function (items) {
+      if (!items.length) { res.innerHTML = '<div class="muted" style="padding:14px 0">No results.</div>'; return; }
+      res.innerHTML = items.map(function (it, i) { var dup = state.lib.items.some(function (x) { return it.doi && x.doi && x.doi.toLowerCase() === it.doi.toLowerCase(); }); return '<div class="result"><div class="ticon" style="width:30px;height:30px;border-radius:7px;display:grid;place-items:center;background:var(--surface-3);flex:0 0 auto">' + ic(L.TYPES[it.type].icon) + '</div><div style="min-width:0;flex:1"><div class="r-title">' + esc(it.title) + (it.retracted ? ' <span class="badge retracted">Retracted</span>' : '') + '</div><div class="r-sub">' + esc(authorsLine(it)) + (it.year ? ' (' + it.year + ')' : '') + (sourceLine(it) ? ' · ' + esc(sourceLine(it)) : '') + (it.doi ? ' · ' + esc(it.doi) : '') + '</div><div class="r-sub" style="font-family:Georgia,serif;margin-top:5px">' + L.formatReference(it, state.settings.style).html + '</div></div><button class="btn sm ' + (dup ? '' : 'primary') + '" data-i="' + i + '">' + (dup ? 'In library' : 'Add') + '</button></div>'; }).join('');
+      $$('button[data-i]', res).forEach(function (b) { b.onclick = function () { var it = items[+b.dataset.i]; if (state.view.kind === 'collection') it.collections = [state.view.id]; state.lib.items.unshift(it); state.active = it.id; markDirty(); render(); b.textContent = 'Added ✓'; b.classList.remove('primary'); b.disabled = true; toast('Added: ' + it.title, { type: 'ok' }); }; });
+    }).catch(function (e) { res.innerHTML = '<div class="warnbox">' + ic('warn') + '<div>Lookup failed (' + esc(e.message || 'no connection') + '). Check the identifier and your internet connection.</div></div>'; });
+  }
+  $('#lkGo', m).onclick = go; inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+}
+
+/* ---------- Import ---------- */
+function openImport(file) {
+  var m = modal({ title: 'Import references', size: 'wide', body: '<div class="dz" id="dz">' + ic('import', 'lg') + '<div style="margin-top:6px"><b>Drop a file here</b> or <a href="#" id="dzPick">choose a file</a></div><div class="small" style="margin-top:4px">BibTeX (.bib) · RIS (.ris) · CSL-JSON / Zotero JSON · LexiRef library (.json)</div></div><div class="field" style="margin-top:12px"><label class="f">…or paste BibTeX / RIS / JSON / a list of DOIs</label><textarea id="impText" rows="5" spellcheck="false" placeholder="@article{key, title={...}, author={...}, year={2024}}"></textarea></div><div class="btn-row"><button class="btn" id="impParse">' + ic('check') + 'Preview</button><span class="muted small" id="impInfo"></span></div><div id="impList" style="margin-top:12px"></div>',
+    footer: '<label class="check small"><input type="checkbox" id="impSkipDup" checked>Skip references whose DOI or title is already in the library</label><span class="spacer"></span><button class="btn" data-close>Cancel</button><button class="btn primary" id="impGo" disabled>Import</button>' });
+  var parsed = [], dz = $('#dz', m);
+  function handleFile(f) {
+    var r = new FileReader();
+    r.onload = function () {
+      var txt = String(r.result);
+      try {
+        if (/\.json$|\.lexiref$/i.test(f.name) || /^\s*[\[{]/.test(txt)) { var lib = L.libraryFile.parse(txt); parsed = lib.items; if (lib.collections.length) parsed._collections = lib.collections; }
+        else parsed = L.importAny(txt, f.name);
+      } catch (e) { parsed = []; toast('Could not parse ' + f.name + ': ' + e.message, { type: 'err' }); }
+      show(f.name);
+    };
+    r.readAsText(f);
+  }
+  function show(src) {
+    var dois = parsed.filter(function (p) { return /^\(DOI pending lookup\)/.test(p.title); });
+    $('#impInfo', m).textContent = parsed.length ? parsed.length + ' references found' + (src ? ' in ' + src : '') + (dois.length ? ' (' + dois.length + ' DOIs will be looked up online)' : '') : 'Nothing recognised';
+    $('#impGo', m).disabled = !parsed.length; $('#impGo', m).textContent = 'Import ' + (parsed.length || '');
+    $('#impList', m).innerHTML = parsed.slice(0, 50).map(function (it) { return '<div class="result" style="padding:7px 10px"><div style="min-width:0"><div class="r-title ellipsis">' + esc(it.title) + '</div><div class="r-sub">' + esc(authorsLine(it)) + (it.year ? ' (' + it.year + ')' : '') + ' · ' + esc(L.TYPES[it.type].label) + '</div></div></div>'; }).join('') + (parsed.length > 50 ? '<div class="muted small">…and ' + (parsed.length - 50) + ' more</div>' : '');
+  }
+  $('#dzPick', m).onclick = function (e) { e.preventDefault(); var fi = $('#fileInput'); fi.value = ''; fi.onchange = function () { if (fi.files[0]) handleFile(fi.files[0]); }; fi.click(); };
+  dz.addEventListener('dragover', function (e) { e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', function () { dz.classList.remove('over'); });
+  dz.addEventListener('drop', function (e) { e.preventDefault(); dz.classList.remove('over'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  $('#impParse', m).onclick = function () { var t = $('#impText', m).value; try { parsed = /^\s*[\[{]/.test(t) ? L.libraryFile.parse(t).items : L.importAny(t); } catch (e) { parsed = []; toast('Could not parse: ' + e.message, { type: 'err' }); } show(''); };
+  $('#impGo', m).onclick = function () {
+    var skip = $('#impSkipDup', m).checked, added = 0, skipped = 0, pending = [];
+    var doiSet = {}, titleSet = {};
+    state.lib.items.forEach(function (x) { if (x.doi) doiSet[x.doi.toLowerCase()] = 1; titleSet[(x.title || '').toLowerCase().replace(/\W+/g, ' ').trim()] = 1; });
+    if (parsed._collections) parsed._collections.forEach(function (c) { if (!collById(c.id) && !state.lib.collections.some(function (x) { return x.name === c.name; })) state.lib.collections.push(c); });
+    parsed.forEach(function (it) {
+      it = L.normalizeItem(it); it.id = itemById(it.id) ? L.uid('r_') : it.id;
+      if (skip && ((it.doi && doiSet[it.doi.toLowerCase()]) || (it.title && titleSet[it.title.toLowerCase().replace(/\W+/g, ' ').trim()] && !/^\(DOI pending/.test(it.title)))) { skipped++; return; }
+      if (state.view.kind === 'collection' && it.collections.indexOf(state.view.id) < 0) it.collections.push(state.view.id);
+      it.collections = it.collections.filter(function (c) { return collById(c); });
+      it.added = new Date().toISOString();
+      if (/^\(DOI pending lookup\)/.test(it.title)) pending.push(it);
+      state.lib.items.unshift(it); added++;
+      if (it.doi) doiSet[it.doi.toLowerCase()] = 1;
+    });
+    markDirty(); m.close(); render();
+    toast('Imported ' + added + (skipped ? ', skipped ' + skipped + ' duplicates' : ''), { type: 'ok' });
+    if (pending.length) resolvePending(pending);
+  };
+  if (file) handleFile(file);
+}
+function resolvePending(items) {
+  var done = 0;
+  toast('Looking up ' + items.length + ' DOIs…');
+  (function next() {
+    if (done >= items.length) { render(); toast('DOI lookups finished', { type: 'ok' }); return; }
+    var it = items[done++];
+    L.crossref.lookupDOI(it.doi).then(function (fresh) { for (var k in fresh) if (k !== 'id' && k !== 'added' && k !== 'collections' && k !== 'tags') it[k] = fresh[k]; it.modified = new Date().toISOString(); markDirty(); })
+      .catch(function () { it.title = 'DOI not found: ' + it.doi; }).then(function () { setTimeout(next, 150); });
+  })();
+}
+
+/* ---------- Export & bibliography ---------- */
+function exportItems(items, fmt, heading) {
+  var style = state.settings.style, numeric = L.STYLES[style].numeric;
+  var bib = L.bibliography(items, style, { markRetracted: state.settings.markRetracted });
+  var base = 'LexiRef-' + (heading || 'references').replace(/[^\w\-]+/g, '-').toLowerCase();
+  switch (fmt) {
+    case 'docx': return download(base + '-' + style + '.docx', L.exportDocx(bib.entries, { heading: heading, numeric: numeric }));
+    case 'rtf': return download(base + '-' + style + '.rtf', L.exportRtf(bib.entries, { heading: heading, numeric: numeric }), 'application/rtf');
+    case 'html': return download(base + '-' + style + '.html', L.exportHtml(bib.entries, { heading: heading, numeric: numeric }), 'text/html');
+    case 'txt': return download(base + '-' + style + '.txt', bib.text, 'text/plain');
+    case 'bib': return download(base + '.bib', L.bibtex.serialize(items), 'application/x-bibtex');
+    case 'ris': return download(base + '.ris', L.ris.serialize(items), 'application/x-research-info-systems');
+    case 'csl': return download(base + '.csl.json', L.csl.serialize(items), 'application/json');
+    case 'lexiref': return download(base + '.lexiref.json', L.libraryFile.serialize({ collections: state.lib.collections.filter(function (c) { return items.some(function (it) { return (it.collections || []).indexOf(c.id) >= 0; }); }), items: items }), 'application/json');
+  }
+}
+function openBibliography(preset) {
+  var sel = selectedItems(), view = listed();
+  var scope = preset || (sel.length ? 'selected' : 'view');
+  var m = modal({ title: 'Bibliography & export', size: 'wide', body:
+    '<div class="grid3"><div class="field"><label class="f">References</label><select id="bScope"><option value="selected" ' + (!sel.length ? 'disabled' : '') + '>Selected (' + sel.length + ')</option><option value="view">Current view: ' + esc(viewTitle()) + ' (' + view.length + ')</option><option value="all">Whole library (' + state.lib.items.length + ')</option></select></div><div class="field"><label class="f">Style</label><select id="bStyle">' + Object.keys(L.STYLES).map(function (k) { return '<option value="' + k + '" ' + (k === state.settings.style ? 'selected' : '') + '>' + L.STYLES[k].label + '</option>'; }).join('') + '</select></div><div class="field"><label class="f">Heading</label><input type="text" id="bHeading" value="References"></div></div>' +
+    '<div class="btn-row" style="margin-bottom:10px"><label class="check small"><input type="checkbox" id="bMark" ' + (state.settings.markRetracted ? 'checked' : '') + '>Prefix retracted sources with “RETRACTED:”</label><span class="muted small" id="bInfo" style="margin-left:auto"></span></div>' +
+    '<div class="preview" id="bPreview"></div>' +
+    '<div style="margin-top:14px"><label class="f">Formatted bibliography</label><div class="btn-row"><button class="btn primary" data-x="copy">' + ic('copy') + 'Copy for Word (rich text)</button><button class="btn" data-x="copytxt">Copy plain text</button><button class="btn" data-x="docx">' + ic('word') + 'Word (.docx)</button><button class="btn" data-x="rtf">RTF</button><button class="btn" data-x="html">HTML</button><button class="btn" data-x="txt">Text</button></div></div>' +
+    '<div style="margin-top:12px"><label class="f">Reference data (for other tools)</label><div class="btn-row"><button class="btn" data-x="bib">BibTeX (.bib)</button><button class="btn" data-x="ris">RIS (.ris)</button><button class="btn" data-x="csl">CSL-JSON (Zotero / Pandoc)</button><button class="btn" data-x="lexiref">LexiRef library file (.json)</button></div></div>',
+    footer: '<span class="muted small">Author–date styles are sorted alphabetically; IEEE and Vancouver keep the list order and number entries.</span><span class="spacer"></span><button class="btn" data-close>Close</button>' });
+  $('#bScope', m).value = scope;
+  function items() { var s = $('#bScope', m).value; return s === 'selected' ? selectedItems() : s === 'view' ? listed() : state.lib.items.slice(); }
+  function refresh() {
+    var its = items(), style = $('#bStyle', m).value;
+    state.settings.markRetracted = $('#bMark', m).checked;
+    var bib = L.bibliography(its, style, { markRetracted: state.settings.markRetracted });
+    $('#bPreview', m).innerHTML = bib.html || '<span class="muted">No references in this scope.</span>';
+    $('#bInfo', m).textContent = its.length + ' entries';
+    $$('[data-x]', m).forEach(function (b) { b.disabled = !its.length; });
+  }
+  ['bScope', 'bStyle', 'bMark', 'bHeading'].forEach(function (id) { $('#' + id, m).onchange = refresh; });
+  $('#bStyle', m).onchange = function () { setStyle(this.value); refresh(); };
+  $$('[data-x]', m).forEach(function (b) {
+    b.onclick = function () {
+      var its = items(), x = b.dataset.x, heading = $('#bHeading', m).value.trim() || 'References';
+      saveSettings();
+      if (x === 'copy') { var bib = L.bibliography(its, state.settings.style, { markRetracted: state.settings.markRetracted }); copyRich(bib.html, bib.text).then(function (ok) { toast(ok ? 'Bibliography copied — paste into Word' : 'Copy failed', { type: ok ? 'ok' : 'err' }); }); }
+      else if (x === 'copytxt') { var bib2 = L.bibliography(its, state.settings.style, { markRetracted: state.settings.markRetracted }); copyText(bib2.text).then(function () { toast('Plain text copied', { type: 'ok' }); }); }
+      else exportItems(its, x, heading);
+    };
+  });
+  refresh();
+}
+
+/* ---------- Integrity check ---------- */
+function openIntegrity() {
+  var sel = selectedItems(), pool = sel.length ? sel : listed();
+  var withDoi = pool.filter(function (it) { return it.doi; }), noDoi = pool.length - withDoi.length;
+  var m = modal({ title: 'Reference integrity check', body: '<p style="margin:0 0 10px;line-height:1.5">Checks each reference with a DOI against <b>Crossref</b> (publisher retraction notices) and <b>OpenAlex</b> (Retraction Watch data). Retracted or withdrawn papers are flagged so you never cite one by accident.</p><div class="infobox">' + withDoi.length + ' of ' + pool.length + ' ' + (sel.length ? 'selected' : 'listed') + ' references have a DOI' + (noDoi ? ' · ' + noDoi + ' without DOI cannot be checked automatically' : '') + '. Requires an internet connection.</div><div class="progress"><div id="ckBar"></div></div><div id="ckStatus" class="muted small"></div><div id="ckResults" style="margin-top:10px"></div>',
+    footer: '<span class="spacer"></span><button class="btn" data-close>Close</button><button class="btn primary" id="ckGo" ' + (withDoi.length ? '' : 'disabled') + '>Check ' + withDoi.length + ' references</button>' });
+  $('#ckGo', m).onclick = function () {
+    var btn = this; btn.disabled = true; var i = 0, flagged = [], unknown = 0, rows = '';
+    (function next() {
+      if (i >= withDoi.length) {
+        $('#ckStatus', m).innerHTML = '<b>Done.</b> ' + flagged.length + ' flagged, ' + (withDoi.length - flagged.length - unknown) + ' clean' + (unknown ? ', ' + unknown + ' could not be verified' : '') + '.';
+        btn.textContent = 'Finished'; markDirty(); render(); return;
+      }
+      var it = withDoi[i++];
+      $('#ckBar', m).style.width = Math.round(i / withDoi.length * 100) + '%';
+      $('#ckStatus', m).textContent = 'Checking ' + i + ' / ' + withDoi.length + ': ' + it.title;
+      L.integrity.check(it).then(function (r) {
+        it.integrity = { status: r.status, checked: new Date().toISOString(), note: r.note, auto: true };
+        if (r.status === 'retracted') { it.retracted = true; it.retractionNote = r.note; flagged.push(it); }
+        else if (r.status === 'clean' && it.retracted && it.retractionNote !== 'Marked manually' && it.integrity.auto) { /* keep manual flags, clear auto ones */ if (/Crossref|OpenAlex/.test(it.retractionNote || '')) { it.retracted = false; it.retractionNote = ''; } }
+        else if (r.status === 'unknown') unknown++;
+        rows += '<tr><td><span class="badge ' + r.status + '">' + (r.status === 'retracted' ? 'RETRACTED' : r.status === 'clean' ? 'Clean' : 'Unknown') + '</span></td><td>' + esc(it.title) + '<div class="muted small">' + esc(r.note) + '</div></td></tr>';
+        $('#ckResults', m).innerHTML = '<table class="tbl"><tr><th style="width:90px">Status</th><th>Reference</th></tr>' + rows + '</table>';
+        setTimeout(next, 120);
+      });
+    })();
+  };
+}
+
+/* ---------- Duplicates ---------- */
+function openDuplicates() {
+  var groups = L.findDuplicates(state.lib.items);
+  if (!groups.length) { toast('No duplicates found — library is clean', { type: 'ok' }); return; }
+  var m = modal({ title: 'Possible duplicates (' + groups.length + ')', size: 'wide', body: groups.map(function (g, gi) { return '<div class="result" style="flex-direction:column;align-items:stretch"><div class="small muted" style="margin-bottom:6px">Group ' + (gi + 1) + ' — choose the record to keep; the others will be merged into it (tags, collections and notes are combined).</div>' + g.map(function (it, ii) { return '<label class="check" style="padding:4px 0"><input type="radio" name="g' + gi + '" value="' + it.id + '" ' + (ii === 0 ? 'checked' : '') + '><span><b>' + esc(it.title) + '</b><span class="muted small"> — ' + esc(authorsLine(it)) + ' (' + (it.year || '—') + ') · ' + esc(L.TYPES[it.type].label) + (it.doi ? ' · ' + esc(it.doi) : '') + ' · added ' + esc(fmtDate(it.added)) + '</span></span></label>'; }).join('') + '</div>'; }).join(''),
+    footer: '<span class="spacer"></span><button class="btn" data-close>Cancel</button><button class="btn primary" id="dupMerge">Merge all groups</button>' });
+  $('#dupMerge', m).onclick = function () {
+    var removed = 0;
+    groups.forEach(function (g, gi) {
+      var keepId = ($('input[name=g' + gi + ']:checked', m) || {}).value, keep = itemById(keepId); if (!keep) return;
+      g.forEach(function (it) {
+        if (it.id === keepId) return;
+        (it.tags || []).forEach(function (t) { if (keep.tags.indexOf(t) < 0) keep.tags.push(t); });
+        (it.collections || []).forEach(function (c) { if (keep.collections.indexOf(c) < 0) keep.collections.push(c); });
+        if (it.notes && keep.notes.indexOf(it.notes) < 0) keep.notes = (keep.notes ? keep.notes + '\n\n' : '') + it.notes;
+        ['abstract', 'doi', 'url', 'pages', 'volume', 'issue', 'publisher'].forEach(function (k) { if (!keep[k] && it[k]) keep[k] = it[k]; });
+        keep.favorite = keep.favorite || it.favorite;
+        state.lib.items = state.lib.items.filter(function (x) { return x.id !== it.id; }); removed++;
+      });
+      touch(keep);
+    });
+    m.close(); render(); toast('Merged ' + removed + ' duplicate records', { type: 'ok' });
+  };
+}
+
+/* ---------- Linked library file (File System Access API) ---------- */
+var fileWriteTimer = null;
+function supportsFS() { return !!window.showSaveFilePicker; }
+function linkFile() {
+  if (!supportsFS()) { toast('Linking needs the installed app or Microsoft Edge/Chrome. You can still export the library file from the ⋯ menu.', { type: 'err', duration: 5000 }); return; }
+  window.showSaveFilePicker({ suggestedName: 'LexiRef Library.json', types: [{ description: 'LexiRef library', accept: { 'application/json': ['.json'] } }] }).then(function (h) {
+    state.fileHandle = h; state.filePermission = 'granted'; DB.set('fileHandle', h); writeLinkedFile(true); renderStatus();
+    toast('Library file linked — it is updated automatically. Open the same file from the Word add-in.', { type: 'ok', duration: 5000 });
+  }).catch(function (e) { if (e.name !== 'AbortError') toast('Could not link file: ' + e.message, { type: 'err' }); });
+}
+function writeLinkedFile(force) {
+  if (!state.fileHandle || state.filePermission !== 'granted' || (!state.settings.autoLink && !force)) return;
+  clearTimeout(fileWriteTimer);
+  fileWriteTimer = setTimeout(function () {
+    state.fileHandle.createWritable().then(function (w) { return w.write(L.libraryFile.serialize(state.lib)).then(function () { return w.close(); }); })
+      .then(function () { $('#stSaved').textContent = 'Saved · file updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); })
+      .catch(function () { state.filePermission = 'denied'; renderStatus(); });
+  }, force ? 0 : 800);
+}
+function reconnectFile() {
+  if (!state.fileHandle) return;
+  state.fileHandle.requestPermission({ mode: 'readwrite' }).then(function (p) { state.filePermission = p; renderStatus(); if (p === 'granted') { writeLinkedFile(true); toast('Library file reconnected', { type: 'ok' }); } }).catch(function () {});
+}
+function unlinkFile() { state.fileHandle = null; state.filePermission = 'none'; DB.set('fileHandle', null); renderStatus(); toast('Library file unlinked'); }
+function openFileFromDisk() {
+  var fi = $('#fileInput'); fi.value = '';
+  fi.onchange = function () {
+    var f = fi.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var lib = L.libraryFile.parse(String(r.result));
+        confirmDlg('Replace library?', 'Replace the current library (' + state.lib.items.length + ' references) with “' + esc(f.name) + '” (' + lib.items.length + ' references)? A backup of the current library will be downloaded first.', 'Replace', true).then(function (ok) {
+          if (!ok) return;
+          download('LexiRef-backup-' + L.todayISO() + '.json', L.libraryFile.serialize(state.lib), 'application/json');
+          state.lib = lib; state.selected = {}; state.active = null; state.view = { kind: 'all', id: null }; markDirty(); render(); toast('Library restored from ' + f.name, { type: 'ok' });
+        });
+      } catch (e) { toast('Not a valid library file: ' + e.message, { type: 'err' }); }
+    };
+    r.readAsText(f);
+  };
+  fi.click();
+}
+
+/* ---------- Settings / About / Word add-in ---------- */
+function openSettings() {
+  var s = state.settings;
+  var m = modal({ title: 'Settings', body:
+    '<div class="grid2"><div class="field"><label class="f">Default citation style</label><select id="sStyle">' + Object.keys(L.STYLES).map(function (k) { return '<option value="' + k + '" ' + (k === s.style ? 'selected' : '') + '>' + L.STYLES[k].label + '</option>'; }).join('') + '</select></div><div class="field"><label class="f">Theme</label><select id="sTheme"><option value="system" ' + (s.theme === 'system' ? 'selected' : '') + '>Follow Windows</option><option value="light" ' + (s.theme === 'light' ? 'selected' : '') + '>Light</option><option value="dark" ' + (s.theme === 'dark' ? 'selected' : '') + '>Dark</option></select></div></div>' +
+    '<div class="field"><label class="check"><input type="checkbox" id="sMark" ' + (s.markRetracted ? 'checked' : '') + '>Prefix retracted sources with “RETRACTED:” in formatted references</label></div>' +
+    '<div class="field"><label class="check"><input type="checkbox" id="sSup" ' + (s.superscript ? 'checked' : '') + '>Vancouver: superscript citation numbers instead of (1)</label></div>' +
+    '<div class="field"><label class="check"><input type="checkbox" id="sAuto" ' + (s.autoLink ? 'checked' : '') + '>Keep the linked library file updated automatically</label></div>' +
+    '<div class="field"><label class="f">Contact e-mail for Crossref / OpenAlex look-ups (optional)</label><input type="text" id="sMail" value="' + esc(s.contactEmail || '') + '" placeholder="you@example.org"><div class="hint">Sent only with DOI look-ups and integrity checks. Joining their “polite pool” gives faster responses and fewer rate limits. Leave empty to send nothing.</div></div>' +
+    '<h5 style="margin:18px 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2)">Library file & backups</h5>' +
+    '<div class="btn-row"><button class="btn" id="sLink">' + ic('link') + (state.fileHandle ? 'Link a different file' : 'Link library file…') + '</button>' + (state.fileHandle ? '<button class="btn" id="sUnlink">Unlink</button>' : '') + '<button class="btn" id="sBackup">' + ic('export') + 'Download backup</button><button class="btn" id="sRestore">' + ic('import') + 'Restore from backup…</button></div>' +
+    '<div class="hint" style="margin-top:6px">Your library is stored on this PC only (no account, no cloud). A linked file lets the Word add-in read the same references and doubles as a backup.' + (s.lastBackup ? ' Last backup: ' + esc(fmtDate(s.lastBackup)) + '.' : '') + '</div>' +
+    '<h5 style="margin:18px 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--danger)">Danger zone</h5><button class="btn danger" id="sClear">' + ic('trash') + 'Delete entire library</button>',
+    footer: '<span class="spacer"></span><button class="btn primary" data-close>Done</button>' });
+  $('#sStyle', m).onchange = function () { setStyle(this.value); };
+  $('#sTheme', m).onchange = function () { s.theme = this.value; applyTheme(); saveSettings(); };
+  $('#sMark', m).onchange = function () { s.markRetracted = this.checked; saveSettings(); renderDetail(); };
+  $('#sSup', m).onchange = function () { s.superscript = this.checked; saveSettings(); renderDetail(); };
+  $('#sAuto', m).onchange = function () { s.autoLink = this.checked; saveSettings(); };
+  $('#sMail', m).onchange = function () { s.contactEmail = this.value.trim(); L.setContactEmail(s.contactEmail); saveSettings(); };
+  $('#sLink', m).onclick = function () { m.close(); linkFile(); };
+  var ul = $('#sUnlink', m); if (ul) ul.onclick = function () { m.close(); unlinkFile(); };
+  $('#sBackup', m).onclick = function () { download('LexiRef-backup-' + L.todayISO() + '.json', L.libraryFile.serialize(state.lib), 'application/json').then(function (ok) { if (ok) { s.lastBackup = new Date().toISOString(); saveSettings(); } }); };
+  $('#sRestore', m).onclick = function () { m.close(); openFileFromDisk(); };
+  $('#sClear', m).onclick = function () { confirmDlg('Delete entire library', 'This removes all ' + state.lib.items.length + ' references and collections from this PC. A backup will be downloaded first. Continue?', 'Delete everything', true).then(function (ok) { if (!ok) return; download('LexiRef-backup-' + L.todayISO() + '.json', L.libraryFile.serialize(state.lib), 'application/json'); state.lib = { collections: [], items: [] }; state.selected = {}; state.active = null; markDirty(); m.close(); render(); }); };
+}
+function openWordAddin() {
+  var base = location.href.replace(/[^\/]*$/, '');
+  modal({ title: 'LexiRef for Microsoft Word', size: 'wide', body:
+    '<p style="margin:0 0 10px;line-height:1.55">The companion <b>Word add-in</b> inserts citations straight into your document as tracked fields, numbers them automatically in order of appearance (IEEE / Vancouver), and builds or refreshes the bibliography with one click. It reads the same library file that LexiRef keeps up to date.</p>' +
+    '<ol class="steps"><li><div><b>Link a library file</b> in LexiRef (⋯ → Link library file). Every change is saved to that file automatically.</div></li><li><div><b>Install the add-in once</b> in Word: <i>Insert → Add-ins → My Add-ins → Upload My Add-in</i> (or <i>Home → Add-ins → More Add-ins</i>), then choose <code>manifest.xml</code> from the <code>word-addin</code> folder you received with LexiRef. Administrators can also deploy it from the Microsoft 365 admin center, and it can be published to AppSource.</div></li><li><div><b>Open the LexiRef pane</b> from the Home tab, click <i>Open library file</i> and select the linked file. Search, pick the style, and insert citations where the cursor is.</div></li><li><div><b>Insert bibliography</b> at the end of your paper. Use <i>Update bibliography</i> after adding or moving citations — numbering and the reference list are rebuilt from the citations in the document.</div></li></ol>' +
+    '<div class="infobox">No add-in installed yet? Every <b>Copy</b> button in LexiRef puts a rich-text citation or reference on the clipboard; paste it into any editor with italics preserved.</div>' +
+    '<div class="small muted">Add-in files are served from <code>' + esc(base) + 'word-addin/</code>. Manifest: <code>' + esc(base) + 'word-addin/manifest.xml</code></div>' });
+}
+function openAbout() {
+  var items = state.lib.items, types = {}, years = {}; items.forEach(function (it) { types[it.type] = (types[it.type] || 0) + 1; if (it.year) years[it.year] = (years[it.year] || 0) + 1; });
+  var top = Object.keys(types).sort(function (a, b) { return types[b] - types[a]; }).slice(0, 4);
+  modal({ title: 'About LexiRef', body: '<div style="display:flex;gap:16px;align-items:center;margin-bottom:14px"><svg viewBox="0 0 64 64" style="width:56px;height:56px;border-radius:14px"><defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#lg2)"/><g fill="#fff"><g transform="translate(24.25 27.5)"><circle r="7"/><path d="M6.86 1.4Q7 11.9-2.45 16.1Q2.1 10.5-1.4 6.86Z"/></g><g transform="translate(39.75 27.5)"><circle r="7"/><path d="M6.86 1.4Q7 11.9-2.45 16.1Q2.1 10.5-1.4 6.86Z"/></g></g></svg><div><b style="font-size:18px">LexiRef</b> <span class="muted">v' + L.version + '</span><div class="muted small" style="margin-top:3px">Modern reference manager & citation engine for Windows. Works fully offline; DOI lookup and integrity checks use the public Crossref and OpenAlex APIs.</div></div></div>' +
+    '<div class="stat-grid"><div class="stat"><b>' + items.length + '</b><span>references</span></div><div class="stat"><b>' + state.lib.collections.length + '</b><span>collections</span></div><div class="stat"><b>' + allTags().length + '</b><span>tags</span></div><div class="stat"><b>' + items.filter(function (i) { return i.retracted; }).length + '</b><span>flagged</span></div></div>' +
+    (top.length ? '<div class="small muted">Most common types: ' + top.map(function (t) { return L.TYPES[t].label + ' (' + types[t] + ')'; }).join(', ') + '</div>' : '') +
+    '<h5 style="margin:16px 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2)">Keyboard shortcuts</h5><div class="kbdlist"><div><span>Search</span><kbd>Ctrl+F</kbd></div><div><span>Add reference</span><kbd>Ctrl+N</kbd></div><div><span>Add by DOI / title</span><kbd>Ctrl+D</kbd></div><div><span>Import file</span><kbd>Ctrl+I</kbd></div><div><span>Edit selected</span><kbd>Ctrl+E</kbd></div><div><span>Copy in-text citation</span><kbd>Ctrl+Shift+C</kbd></div><div><span>Copy reference entry</span><kbd>Ctrl+Shift+B</kbd></div><div><span>Bibliography & export</span><kbd>Ctrl+Shift+E</kbd></div><div><span>Select all listed</span><kbd>Ctrl+A</kbd></div><div><span>Delete selected</span><kbd>Del</kbd></div><div><span>Next / previous reference</span><kbd>↓ / ↑</kbd></div><div><span>Close dialog</span><kbd>Esc</kbd></div></div>' +
+    '<p class="small muted" style="margin:14px 0 0">© ' + new Date().getFullYear() + ' LexiRef. Citation styles: APA 7, IEEE, MLA 9, Chicago 17 (author–date), Harvard (Cite Them Right), Vancouver. Privacy: no accounts, no tracking — your data never leaves this PC except the DOI you choose to look up.</p>' });
+}
+function loadSample() {
+  var s = L.sampleLibrary();
+  s.collections.forEach(function (c) { if (!collById(c.id)) state.lib.collections.push(c); });
+  var n = 0; s.items.forEach(function (it) { if (!itemById(it.id)) { state.lib.items.push(it); n++; } });
+  markDirty(); render(); toast('Loaded ' + n + ' sample references', { type: 'ok' });
+}
+function openWelcome() {
+  var m = modal({ title: 'Welcome to LexiRef', size: 'wide', sticky: true, focus: false, body: '<p style="margin:0 0 6px;line-height:1.55">Collect references, format them in APA, IEEE, MLA, Chicago, Harvard or Vancouver, check them for retractions, and cite in Word — all offline, on this PC.</p><div class="welcome-opts"><button id="wSample">' + ic('layers', 'lg') + '<b>Explore with a sample library</b><span>13 real references across every type, with collections and tags. Delete them any time.</span></button><button id="wImport">' + ic('import', 'lg') + '<b>Import my references</b><span>From Zotero, Mendeley, EndNote or any tool: BibTeX, RIS or CSL-JSON.</span></button><button id="wEmpty">' + ic('plus', 'lg') + '<b>Start empty</b><span>Add references by DOI or by hand.</span></button></div>', footer: false });
+  $('#wSample', m).onclick = function () { loadSample(); m.close(); };
+  $('#wImport', m).onclick = function () { m.close(); openImport(); };
+  $('#wEmpty', m).onclick = function () { m.close(); };
+  state.settings.welcomed = true; saveSettings();
+}
+
+/* ---------- Theme ---------- */
+var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+function applyTheme() {
+  var t = state.settings.theme, dark = t === 'dark' || (t === 'system' && mq && mq.matches);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  $('#btnTheme').innerHTML = dark ? ic('sun') : '<svg class="ic" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  var meta = $('meta[name=theme-color]'); if (meta) meta.content = dark ? '#171a23' : '#4f46e5';
+}
+if (mq && mq.addEventListener) mq.addEventListener('change', function () { if (state.settings.theme === 'system') applyTheme(); });
+
+/* ---------- Menus & toolbar ---------- */
+function addMenu(e) {
+  var r = e.currentTarget.getBoundingClientRect();
+  showMenu(r.left, r.bottom + 6, [
+    { label: 'By DOI, arXiv ID or title search', icon: 'search', sc: 'Ctrl+D', action: openLookup },
+    { label: 'Manual entry', icon: 'edit', sc: 'Ctrl+N', action: function () { openEditor(null); } },
+    { label: 'Import file (BibTeX, RIS, JSON)…', icon: 'import', sc: 'Ctrl+I', action: function () { openImport(); } },
+    { label: 'Paste BibTeX / RIS / DOIs…', icon: 'copy', action: function () { openImport(); } }
+  ]);
+}
+function moreMenu(e) {
+  var r = e.currentTarget.getBoundingClientRect();
+  showMenu(r.right - 240, r.bottom + 6, [
+    { label: 'Bibliography & export…', icon: 'export', sc: 'Ctrl+Shift+E', action: function () { openBibliography(); } },
+    { label: 'Export whole library (.bib / .ris / .json)…', icon: 'layers', action: function () { openBibliography('all'); } },
+    { label: 'Find duplicates', icon: 'dup', action: openDuplicates },
+    '-',
+    { label: state.fileHandle ? 'Library file: ' + state.fileHandle.name : 'Link library file…', icon: 'link', action: state.fileHandle ? function () { openSettings(); } : linkFile },
+    { label: 'Word add-in…', icon: 'word', action: openWordAddin },
+    { label: 'Load sample library', icon: 'layers', action: loadSample },
+    '-',
+    { label: 'Settings…', icon: 'settings', action: openSettings },
+    { label: 'Keyboard shortcuts & about', icon: 'keyboard', action: openAbout }
+  ]);
+}
+function bulk(action) {
+  var items = selectedItems();
+  switch (action) {
+    case 'cite': copyCitation(items); break;
+    case 'refs': copyReferences(items); break;
+    case 'collection': chooseCollection(items.map(function (i) { return i.id; })); break;
+    case 'tag': addTagTo(items); break;
+    case 'export': openBibliography('selected'); break;
+    case 'delete': confirmDlg('Delete references', 'Delete ' + items.length + ' selected references?', 'Delete', true).then(function (ok) { if (ok) deleteItems(items); }); break;
+    case 'clear': state.selected = {}; renderList(); break;
+  }
+}
+function moveActive(dir) {
+  var ids = listed().map(function (x) { return x.id; }); if (!ids.length) return;
+  var i = ids.indexOf(state.active), n = i < 0 ? 0 : Math.max(0, Math.min(ids.length - 1, i + dir));
+  state.active = ids[n]; renderList(); renderDetail();
+  var row = $('.row[data-id="' + state.active + '"]'); if (row) row.scrollIntoView({ block: 'nearest' });
+}
+function bindUI() {
+  $('#btnAdd').onclick = addMenu;
+  $('#btnMore').onclick = moreMenu;
+  $('#btnBib').onclick = function () { openBibliography(); };
+  $('#btnCheck').onclick = openIntegrity;
+  $('#btnTheme').onclick = function () { var d = document.documentElement.getAttribute('data-theme') === 'dark'; state.settings.theme = d ? 'light' : 'dark'; applyTheme(); saveSettings(); };
+  $('#btnSelectAll').onclick = function () { var all = listed(), every = all.length && all.every(function (i) { return state.selected[i.id]; }); state.selected = {}; if (!every) all.forEach(function (i) { state.selected[i.id] = true; }); renderList(); };
+  $('#btnCloseDetail').onclick = function () { $('#detailPane').classList.remove('open'); };
+  var ss = $('#styleSelect'); ss.innerHTML = Object.keys(L.STYLES).map(function (k) { return '<option value="' + k + '">' + L.STYLES[k].label + '</option>'; }).join(''); ss.value = state.settings.style; ss.onchange = function () { setStyle(this.value); };
+  var tf = $('#typeFilter'); tf.innerHTML += Object.keys(L.TYPES).map(function (k) { return '<option value="' + k + '">' + L.TYPES[k].label + '</option>'; }).join(''); tf.onchange = function () { state.typeFilter = this.value; renderList(); };
+  $('#sortSelect').onchange = function () { state.sort = this.value; renderList(); };
+  var st; $('#searchBox').addEventListener('input', function () { clearTimeout(st); var v = this.value; st = setTimeout(function () { state.query = v; state.limit = 300; renderList(); }, 120); });
+  $$('.detail .tabs button[data-tab]').forEach(function (b) { b.onclick = function () { state.tab = b.dataset.tab; renderDetail(); }; });
+  $$('#bulkbar [data-bulk]').forEach(function (b) { b.onclick = function () { bulk(b.dataset.bulk); }; });
+  // Drag & drop files anywhere → import
+  document.addEventListener('dragover', function (e) { if (e.dataTransfer && e.dataTransfer.types.indexOf('Files') >= 0) e.preventDefault(); });
+  document.addEventListener('drop', function (e) { if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0] && !$('.overlay')) { e.preventDefault(); openImport(e.dataTransfer.files[0]); } });
+  // Keyboard
+  document.addEventListener('keydown', function (e) {
+    var inField = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.activeElement.isContentEditable;
+    var mod = e.ctrlKey || e.metaKey, hasModal = !!$('.overlay');
+    if (mod && e.key.toLowerCase() === 'f') { e.preventDefault(); $('#searchBox').focus(); $('#searchBox').select(); return; }
+    if (hasModal) return;
+    if (mod && e.key.toLowerCase() === 'n') { e.preventDefault(); openEditor(null); return; }
+    if (mod && e.key.toLowerCase() === 'd') { e.preventDefault(); openLookup(); return; }
+    if (mod && e.key.toLowerCase() === 'i') { e.preventDefault(); openImport(); return; }
+    if (mod && e.shiftKey && e.key.toLowerCase() === 'e') { e.preventDefault(); openBibliography(); return; }
+    if (mod && e.shiftKey && e.key.toLowerCase() === 'c') { e.preventDefault(); var t1 = targetItems(); if (t1.length) copyCitation(t1); return; }
+    if (mod && e.shiftKey && e.key.toLowerCase() === 'b') { e.preventDefault(); var t2 = targetItems(); if (t2.length) copyReferences(t2); return; }
+    if (inField) { if (e.key === 'Escape') { document.activeElement.blur(); if (document.activeElement === $('#searchBox')) { } } return; }
+    if (mod && e.key.toLowerCase() === 'e') { e.preventDefault(); if (state.active) openEditor(state.active); return; }
+    if (mod && e.key.toLowerCase() === 'a') { e.preventDefault(); listed().forEach(function (i) { state.selected[i.id] = true; }); renderList(); return; }
+    if (e.key === 'Delete') { var t3 = targetItems(); if (t3.length) { if (t3.length > 1) bulk('delete'); else deleteItems(t3); } return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(1); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); moveActive(-1); return; }
+    if (e.key === 'Enter' && state.active) { openEditor(state.active); return; }
+    if (e.key === 'Escape') { state.selected = {}; renderList(); }
+  });
+}
+
+/* ---------- Init ---------- */
+function init() {
+  Promise.all([DB.get('library'), DB.get('settings'), DB.get('fileHandle')]).then(function (r) {
+    if (r[0] && r[0].items) state.lib = { collections: r[0].collections || [], items: r[0].items.map(L.normalizeItem) };
+    if (r[1]) for (var k in r[1]) state.settings[k] = r[1][k];
+    L.setContactEmail(state.settings.contactEmail || '');
+    if (r[2]) { state.fileHandle = r[2]; state.filePermission = 'prompt'; if (r[2].queryPermission) r[2].queryPermission({ mode: 'readwrite' }).then(function (p) { state.filePermission = p; renderStatus(); }).catch(function () {}); }
+    applyTheme(); bindUI(); render();
+    var launched = handleLaunch();
+    if (!launched && !state.settings.welcomed && !state.lib.items.length) openWelcome();
+  }).catch(function () { applyTheme(); bindUI(); render(); });
+}
+function handleLaunch() {
+  var a = null; try { a = new URLSearchParams(location.search).get('action'); } catch (e) {}
+  if ('launchQueue' in window && window.launchQueue.setConsumer) {
+    window.launchQueue.setConsumer(function (lp) { if (lp.files && lp.files.length) lp.files[0].getFile().then(function (f) { openImport(f); }); });
+  }
+  if (a === 'lookup') { openLookup(); return true; }
+  if (a === 'import') { openImport(); return true; }
+  if (a === 'bibliography') { openBibliography(); return true; }
+  return a === 'open';
+}
+init();
+if ('serviceWorker' in navigator && location.protocol !== 'file:') { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
+})();
+</script>
+</body>
+</html>
