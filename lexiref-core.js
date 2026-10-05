@@ -1549,7 +1549,7 @@
   /* ------------------------------------------------------------------ */
 
   root.LexiRef = {
-    version: '1.0.0',
+    version: '1.0.1',
     TYPES: TYPES, FIELDS: FIELDS, TYPE_FIELDS: TYPE_FIELDS, STYLES: STYLES, MONTHS: MONTHS,
     uid: uid, esc: esc, stripHtml: stripHtml, cleanDoi: cleanDoi, doiUrl: doiUrl, todayISO: todayISO,
     newItem: newItem, normalizeItem: normalizeItem, parseNames: parseNames, namesToText: namesToText, nameDisplay: nameDisplay,

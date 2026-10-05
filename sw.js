@@ -1,5 +1,5 @@
 /* LexiRef service worker — makes the app work fully offline. Bump CACHE on every release. */
-var CACHE = 'lexiref-v1.0.0';
+var CACHE = 'lexiref-v1.0.1';
 var SHELL = [
   './', './index.html', './lexiref-core.js', './manifest.json', './privacy.html',
   './icons/icon-16.png', './icons/icon-32.png', './icons/icon-48.png', './icons/icon-64.png', './icons/icon-128.png',
